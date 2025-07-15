@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Meta & Links -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YTTA</title>
+
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://kit.fontawesome.com/a2e0e6f393.js" crossorigin="anonymous"></script>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in': 'fadeIn 1.5s ease-out forwards',
+                        'text-reveal': 'textReveal 1.5s cubic-bezier(0.77, 0, 0.175, 1) forwards',
+                        'gradient-shift': 'gradientShift 8s ease infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        textReveal: {
+                            '0%': { transform: 'translate(0, 100%)' },
+                            '100%': { transform: 'translate(0, 0)' },
+                        },
+                        gradientShift: {
+                            '0%': { 'background-position': '0% 50%' },
+                            '50%': { 'background-position': '100% 50%' },
+                            '100%': { 'background-position': '0% 50%' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Styles */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f8f8;
+            color: #111;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #ff4d4d, #f9cb28, #ff4d4d);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: gradientShift 8s ease infinite;
+        }
+
+        .parallax {
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        .hover-scale {
+            transition: transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+
+        .hover-scale:hover {
+            transform: scale(1.03);
+        }
+
+        .clip-path-inset {
+            clip-path: inset(0 0 0 0 round 20px);
+        }
+
+        .text-stroke {
+            -webkit-text-stroke: 1px currentColor;
+            color: transparent;
+        }
+
+        @media (max-width: 768px) {
+            .parallax {
+                background-attachment: scroll;
+            }
+        }
+
+        /* Modal specific styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            /* Dim background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            overflow: hidden;
+            /* Important for floating images */
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-header-container {
+            /* Container for title and close button */
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            right: 1rem;
+            z-index: 1010;
+            /* Above floating images */
+            display: flex;
+            justify-content: space-between;
+            /* Space out title and button */
+            align-items: center;
+            padding: 0 1rem;
+            /* Add some padding */
+            pointer-events: none;
+            /* Allow clicks to pass through except for children */
+        }
+
+        .modal-header-container #modal-title {
+            pointer-events: auto;
+            /* Make title clickable if needed, or just visible */
+            text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+            /* Stronger shadow for readability */
+            color: white;
+            /* Ensure title is white */
+            margin: 0;
+            /* Remove default margins */
+        }
+
+        .modal-close-button {
+            background: rgba(255, 255, 255, 0.2);
+            /* Semi-transparent background */
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #fff;
+            /* White color for visibility */
+            transition: all 0.2s ease;
+            border-radius: 9999px;
+            /* rounded-full */
+            padding: 0.5rem 0.75rem;
+            backdrop-filter: blur(8px);
+            /* Blur effect */
+            -webkit-backdrop-filter: blur(8px);
+            pointer-events: auto;
+            /* Make button clickable */
+            line-height: 1;
+            /* Adjust line height for icon centering */
+        }
+
+        .modal-close-button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            color: #ff4d4d;
+            /* Red on hover */
+            transform: scale(1.1);
+        }
+
+        .floating-image {
+            position: absolute;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            /* rounded-xl */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            /* Stronger shadow for floating effect */
+            transition: all 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
+            /* Smooth initial placement */
+            pointer-events: auto;
+            /* Changed to auto to allow dragging */
+            z-index: 10;
+            opacity: 0;
+            /* Start hidden for fade-in */
+            animation: fadeIn 0.5s ease-out forwards;
+            /* Fade in animation */
+            cursor: grab;
+            /* Add grab cursor for draggable elements */
+        }
+
+        .floating-image.dragging {
+            cursor: grabbing;
+            z-index: 10000;
+            /* Bring dragged image to front */
+        }
+
+
+        .modal-description-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1005;
+            /* Between header and floating images */
+            text-align: center;
+            color: white;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
+            /* Strong shadow for readability */
+            max-width: 70%;
+            /* Limit width for better readability */
+            padding: 1rem;
+            pointer-events: none;
+            /* Allow clicks to pass through */
+            animation: fadeIn 0.8s ease-out forwards;
+            /* Fade in animation */
+            animation-delay: 0.3s;
+            /* Delay after modal opens */
+        }
+
+        .modal-description-container p {
+            font-size: 1.25rem;
+            /* text-xl */
+            line-height: 1.6;
+            font-weight: 300;
+            /* font-light */
+        }
+    </style>
+</head>
+
+<body class="bg-white dark:bg-neutral-900 dark:text-neutral-100">
+    <!-- Theme Toggle -->
+    <button onclick="toggleTheme()"
+        class="fixed top-5 right-5 z-50 bg-white/80 dark:bg-neutral-800/80 backdrop-blur-md text-black dark:text-white p-3 rounded-full shadow-lg transition-all hover:scale-110 hover:rotate-180">
+        <i class="fas fa-adjust text-lg"></i>
+    </button>
+
+    <!-- Hero Section -->
+    <section class="min-h-screen flex flex-col justify-center items-center text-center px-4 relative overflow-hidden">
+        <div
+            class="absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-500 to-red-500 opacity-90 dark:opacity-80">
+        </div>
+        <div class="absolute inset-0 bg-[url('img/group/home.png')] bg-cover bg-center parallax"></div>
+        <div class="relative z-10 max-w-4xl px-6" data-aos="fade-up">
+            <h1 class="text-7xl md:text-8xl font-bold mb-6 text-white tracking-tight">
+                <span class="inline-block overflow-hidden">
+                    <span class="inline-block animate-text-reveal">YTTA</span>
+                </span>
+            </h1>
+            <p class="text-xl md:text-2xl text-white/90 font-light mb-8 animate-fade-in" style="animation-delay: 0.3s;">
+                A Group of Six • Since 2022
+            </p>
+            <div class="animate-fade-in" style="animation-delay: 0.6s;">
+                <a href="#about"
+                    class="inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full hover:bg-white/20 transition-all">
+                    Discover Our Story
+                    <i class="fas fa-arrow-down ml-2"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="absolute bottom-8 left-0 right-0 flex justify-center animate-float" style="animation-delay: 1s;">
+            <i class="fas fa-angle-down text-2xl text-white/60"></i>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="min-h-[80vh] py-20 px-6 md:px-24 flex items-center">
+        <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+            <div class="relative group" data-aos="fade-right">
+                <div
+                    class="absolute -inset-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl opacity-20 group-hover:opacity-30 blur-md transition-all duration-500">
+                </div>
+                <div class="relative bg-white dark:bg-neutral-800 p-8 rounded-xl shadow-xl hover-scale">
+                    <h2 class="text-4xl font-bold mb-6 gradient-text">About YTTA</h2>
+                    <p class="text-lg leading-relaxed text-gray-700 dark:text-gray-300 mb-6">
+                        We are YTTA - a tight-knit group of six friends who share laughter, tears, and countless meals
+                        together. From spontaneous adventures to deep midnight conversations, we've created memories
+                        that define our bond.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-4 py-2 bg-gray-100 dark:bg-neutral-700 rounded-full text-sm">Wiesye</span>
+                        <span class="px-4 py-2 bg-gray-100 dark:bg-neutral-700 rounded-full text-sm">Hilman</span>
+                        <span class="px-4 py-2 bg-gray-100 dark:bg-neutral-700 rounded-full text-sm">Salwa</span>
+                        <span class="px-4 py-2 bg-gray-100 dark:bg-neutral-700 rounded-full text-sm">Marsha</span>
+                        <span class="px-4 py-2 bg-gray-100 dark:bg-neutral-700 rounded-full text-sm">Doni</span>
+                        <span class="px-4 py-2 bg-gray-100 dark:bg-neutral-700 rounded-full text-sm">Adristhi</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4" data-aos="fade-left">
+                <div class="rounded-xl overflow-hidden hover-scale">
+                    <img src="img/group/intro1.jpg" alt="YTTA moment"
+                        class="w-full h-full object-cover aspect-square">
+                </div>
+                <div class="rounded-xl overflow-hidden hover-scale">
+                    <img src="img/group/intro2.jpg" alt="YTTA moment"
+                        class="w-full h-full object-cover aspect-square">
+                </div>
+                <div class="rounded-xl overflow-hidden hover-scale">
+                    <img src="img/group/intro3.jpg" alt="YTTA moment"
+                        class="w-full h-full object-cover aspect-square">
+                </div>
+                <div class="rounded-xl overflow-hidden hover-scale">
+                    <img src="img/group/intro4.jpg" alt="YTTA moment"
+                        class="w-full h-full object-cover aspect-square">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery"
+        class="py-20 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-neutral-800 dark:to-neutral-900">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-4xl font-bold mb-4 gradient-text">Our Moments</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                    Captured memories that tell our story better than words ever could
+                </p>
+            </div>
+
+            <div id="gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" data-aos="fade-up">
+                <!-- Gallery items will be dynamically loaded here by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Members Section -->
+    <section class="py-20 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-4xl font-bold mb-4 gradient-text">Meet The Squad</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                    Six personalities, one unforgettable group dynamic
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Member 1 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden shadow-lg hover-scale"
+                    data-aos="fade-up" data-aos-delay="100">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src="img/individual/wiesye.jpg" alt="Wiesye"
+                            class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold mb-1">Wiesye Roryn Sanyoto</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">"Soft-spoken but savage"</p>
+                        <p class="text-gray-600 dark:text-gray-300">The quiet observer with the sharpest wit in the
+                            group. Always has the perfect one-liners.</p>
+                    </div>
+                </div>
+
+                <!-- Member 2 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden shadow-lg hover-scale"
+                    data-aos="fade-up" data-aos-delay="200">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src="img/individual/hilman.jpg" alt="Hilman"
+                            class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold mb-1">Hilman Zahrawa Budiarto</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">"The Zen Master"</p>
+                        <p class="text-gray-600 dark:text-gray-300">Keeps the group grounded with his calm presence and
+                            unexpected wisdom.</p>
+                    </div>
+                </div>
+
+                <!-- Member 3 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden shadow-lg hover-scale"
+                    data-aos="fade-up" data-aos-delay="300">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src="img/individual/salwa.jpg" alt="Salwa"
+                            class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold mb-1">Salwa Anindya Putri</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">"Queen of comebacks"</p>
+                        <p class="text-gray-600 dark:text-gray-300">Never loses an argument and always has the group in
+                            stitches with her quick wit.</p>
+                    </div>
+                </div>
+
+                <!-- Member 4 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden shadow-lg hover-scale"
+                    data-aos="fade-up" data-aos-delay="400">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src="img/individual/marsha.jpg" alt="Marsha"
+                            class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold mb-1">Marsha Jasmine Kusuma</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">"Boba is her blood type"</p>
+                        <p class="text-gray-600 dark:text-gray-300">The group's energy booster who can turn any day into
+                            an adventure.</p>
+                    </div>
+                </div>
+
+                <!-- Member 5 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden shadow-lg hover-scale"
+                    data-aos="fade-up" data-aos-delay="500">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src="img/individual/doni.jpg" alt="Doni"
+                            class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold mb-1">Doni Pramana Putra</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">"Silent but chaotic"</p>
+                        <p class="text-gray-600 dark:text-gray-300">The quiet one who surprises everyone with
+                            unexpectedly hilarious moments.</p>
+                    </div>
+                </div>
+
+                <!-- Member 6 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden shadow-lg hover-scale"
+                    data-aos="fade-up" data-aos-delay="600">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src="img/individual/adristhi.jpg" alt="Adristhi"
+                            class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold mb-1">Adristhi Maheswari Ayuningtyas</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">"Elegant troublemaker"</p>
+                        <p class="text-gray-600 dark:text-gray-300">Classy on the surface but the mastermind behind most
+                            of the group's shenanigans.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quote Section -->
+    <section class="py-32 bg-gradient-to-r from-purple-500 to-pink-500 text-center relative overflow-hidden">
+        <div
+            class="absolute inset-0 bg-[url('img/group/studio4.png')] bg-cover bg-center parallax opacity-20">
+        </div>
+        <div class="relative max-w-4xl mx-auto px-6">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-8 leading-tight" data-aos="fade-up">
+                "We're not a gang.<br class="hidden sm:block"> We're a limited edition."
+            </h2>
+            <div class="flex justify-center space-x-4" data-aos="fade-up" data-aos-delay="200">
+                <a href="#"
+                    class="px-6 py-3 bg-white/20 backdrop-blur-md border border-white/30 text-white rounded-full hover:bg-white/30 transition-all flex items-center">
+                    <i class="fab fa-instagram mr-2"></i> Follow Us
+                </a>
+                <a href="#"
+                    class="px-6 py-3 bg-white text-purple-600 rounded-full hover:bg-gray-100 transition-all flex items-center">
+                    <i class="fas fa-images mr-2"></i> More Photos
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-neutral-900 text-neutral-400 py-12 px-6">
+        <div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
+            <div data-aos="fade-up">
+                <h3 class="text-white text-xl font-semibold mb-4">YTTA</h3>
+                <p class="mb-4">Built with late nights and too much laughter.</p>
+                <p>© 2025 YTTA. All memories preserved.</p>
+            </div>
+            <div data-aos="fade-up" data-aos-delay="100">
+                <h3 class="text-white text-xl font-semibold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-white transition-colors">Home</a></li>
+                    <li><a href="#about" class="hover:text-white transition-colors">About</a></li>
+                    <li><a href="#gallery" class="hover:text-white transition-colors">Gallery</a></li>
+                    <li><a href="#members" class="hover:text-white transition-colors">Members</a></li>
+                </ul>
+            </div>
+            <div data-aos="fade-up" data-aos-delay="200">
+                <h3 class="text-white text-xl font-semibold mb-4">Stay Connected</h3>
+                <div class="flex space-x-4">
+                    <a href="#"
+                        class="w-10 h-10 rounded-full bg-neutral-800 hover:bg-purple-500 flex items-center justify-center transition-all">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#"
+                        class="w-10 h-10 rounded-full bg-neutral-800 hover:bg-blue-500 flex items-center justify-center transition-all">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#"
+                        class="w-10 h-10 rounded-full bg-neutral-800 hover:bg-red-500 flex items-center justify-center transition-all">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Image Modal Structure -->
+    <div id="image-modal" class="modal-overlay hidden">
+        <div class="modal-header-container">
+            <!-- New container for title and close button -->
+            <h3 id="modal-title" class="text-2xl font-bold gradient-text text-white text-shadow-lg"></h3>
+            <button class="modal-close-button" onclick="hideImageModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="modal-description" class="modal-description-container">
+            <p></p>
+        </div>
+        <div id="floating-images-container" class="absolute inset-0">
+            <!-- Images will be loaded here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- AOS Init -->
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            easing: 'ease-out-quart',
+            once: true,
+            offset: 100
+        });
+
+        // Theme toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                html.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // --- Image Modal Logic ---
+        const imageModal = document.getElementById('image-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDescription = document.querySelector('#modal-description p'); // Reference to the <p> tag inside the description container
+        const floatingImagesContainer = document.getElementById('floating-images-container');
+        const galleryGrid = document.getElementById('gallery-grid'); // Get the gallery grid container
+
+        // Variables for dragging functionality
+        let activeDraggable = null;
+        let initialX, initialY;
+        let xOffset = 0, yOffset = 0;
+
+        // Define moment details including title, description, and images
+        const momentDetails = {
+            "Kogu 2022": {
+                title: "Kogu 2022 Gathering",
+                description: "Our memorable gathering at Kogu in 2022, marking the beginning of many shared adventures. Great food and even better company!",
+                images: [
+                    "img/group/kogu2022/kogu1.jpeg",
+                    "img/group/kogu2022/kogu2.jpeg",
+                    "img/group/kogu2022/kogu3.jpeg",
+                    "img/group/kogu2022/kogu4.jpeg",
+                    "img/group/kogu2022/kogu5.jpeg"
+                ]
+            },
+            "Bukber 2023": {
+                title: "Bukber 2023",
+                description: "Breaking fast together in 2023, a tradition we cherish. Laughter, good food, and warm conversations.",
+                images: [
+                    "img/group/bukber2023/bukber2023 (1).jpeg",
+                    "img/group/bukber2023/bukber2023 (2).jpeg",
+                    "img/group/bukber2023/bukber2023 (3).jpeg",
+                    "img/group/bukber2023/bukber2023 (4).jpeg",
+                    "img/group/bukber2023/bukber2023 (5).jpeg",
+                    "img/group/bukber2023/bukber2023 (6).jpeg",
+                    "img/group/bukber2023/bukber2023 (7).jpeg",
+                    "img/group/bukber2023/bukber2023 (8).jpeg",
+                    "img/group/bukber2023/bukber2023 (9).jpeg"
+                ]
+            },
+            "Lawang 2023": {
+                title: "Lawang Trip 2023",
+                description: "An exciting trip to Lawang in 2023, exploring new places and making fun memories.",
+                images: [
+                    "img/group/lawang2023/lawang (0).jpeg",
+                    "img/group/lawang2023/lawang (1).jpeg",
+                    "img/group/lawang2023/lawang (2).jpeg",
+                    "img/group/lawang2023/lawang (3).jpeg",
+                    "img/group/lawang2023/lawang (4).jpeg",
+                    "img/group/lawang2023/lawang (5).jpeg",
+                    "img/group/lawang2023/lawang (6).jpeg",
+                    "img/group/lawang2023/lawang (7).jpeg"
+                ]
+            },
+            "Robucca 2023": {
+                title: "Robucca Cafe 2023",
+                description: "Chilling at Robucca Cafe in 2023, enjoying coffee and each other's company.",
+                images: [
+                    "img/group/robucca2023/robucca (1).jpeg",
+                    "img/group/robucca2023/robucca (2).jpeg",
+                    "img/group/robucca2023/robucca (3).jpeg",
+                    "img/group/robucca2023/robucca (4).jpeg",
+                    "img/group/robucca2023/robucca (5).jpeg",
+                    "img/group/robucca2023/robucca (6).jpeg",
+                    "img/group/robucca2023/robucca (7).jpeg",
+                    "img/group/robucca2023/robucca (8).jpeg"
+                ]
+            },
+            "Life Update 2023": {
+                title: "Life Update Session 2023",
+                description: "A cozy session to catch up on everyone's life updates in 2023. Sharing stories, advice, and support.",
+                images: [
+                    "img/group/lifeupdate2023/lifeupdate (1).jpeg",
+                    "img/group/lifeupdate2023/lifeupdate (2).jpeg",
+                    "img/group/lifeupdate2023/lifeupdate (3).jpeg",
+                    "img/group/lifeupdate2023/lifeupdate (4).jpeg",
+                    "img/group/lifeupdate2023/lifeupdate (5).jpeg",
+                    "img/group/lifeupdate2023/lifeupdate (6).jpeg",
+                    "img/group/lifeupdate2023/lifeupdate (7).jpeg",
+                    "img/group/lifeupdate2023/lifeupdate (8).jpeg"
+                ]
+            },
+            "Konser Dewa 19 2023": {
+                title: "Dewa 19 Concert 2023",
+                description: "Rocking out at the Dewa 19 concert in 2023! An unforgettable night of music and singing along.",
+                images: [
+                    "img/group/konserdewa192023/dewa (1).jpeg",
+                    "img/group/konserdewa192023/dewa (2).jpeg",
+                    "img/group/konserdewa192023/dewa (3).jpeg",
+                    "img/group/konserdewa192023/dewa (4).jpeg",
+                    "img/group/konserdewa192023/dewa (5).jpeg",
+                    "img/group/konserdewa192023/dewa (6).jpeg",
+                    "img/group/konserdewa192023/dewa (7).jpeg",
+                    "img/group/konserdewa192023/dewa (8).jpeg"
+                ]
+            },
+            "Bukber 2024": {
+                title: "Bukber 2024",
+                description: "Another beautiful breaking fast session in 2024, continuing our cherished tradition.",
+                images: [
+                    "img/group/bukber2024/bukber2024 (1).jpeg",
+                    "img/group/bukber2024/bukber2024 (2).jpeg",
+                    "img/group/bukber2024/bukber2024 (3).jpeg",
+                    "img/group/bukber2024/bukber2024 (4).jpeg",
+                    "img/group/bukber2024/bukber2024 (5).jpeg",
+                    "img/group/bukber2024/bukber2024 (6).jpeg",
+                    "img/group/bukber2024/bukber2024 (7).jpeg"
+                ]
+            },
+            "Jokopi 2024": {
+                title: "Jokopi Hangout 2024",
+                description: "Relaxing and chatting at Jokopi in 2024. The perfect spot for our casual meetups.",
+                images: [
+                    "img/group/jokopi2024/jokopi (1).jpeg",
+                    "img/group/jokopi2024/jokopi (2).jpeg",
+                    "img/group/jokopi2024/jokopi (3).jpeg",
+                    "img/group/jokopi2024/jokopi (4).jpeg",
+                    "img/group/jokopi2024/jokopi (5).jpeg",
+                    "img/group/jokopi2024/jokopi (6).jpeg"
+                ]
+            },
+            "CW 2025": {
+                title: "CW 2025",
+                description: "Our latest adventures at CW in 2025, creating new memories and strengthening our bond.",
+                images: [
+                    "img/group/cw2025/cw (1).jpeg",
+                    "img/group/cw2025/cw (2).jpeg",
+                    "img/group/cw2025/cw (3).jpeg",
+                    "img/group/cw2025/cw (4).jpeg",
+                    "img/group/cw2025/cw (5).jpeg",
+                    "img/group/cw2025/cw (6).jpeg",
+                    "img/group/cw2025/cw (7).jpeg"
+                ]
+            },
+            "Bukber 2025": {
+                title: "Bukber 2025",
+                description: "Another year, another cherished breaking fast together in 2025. These moments are what truly matter.",
+                images: [
+                    "img/group/bukber2025/bukber2025 (1).jpeg",
+                    "img/group/bukber2025/bukber2025 (2).jpeg",
+                    "img/group/bukber2025/bukber2025 (3).jpeg",
+                    "img/group/bukber2025/bukber2025 (4).jpeg",
+                    "img/group/bukber2025/bukber2025 (5).jpeg",
+                    "img/group/bukber2025/bukber2025 (6).jpeg",
+                    "img/group/bukber2025/bukber2025 (7).jpeg",
+                    "img/group/bukber2025/bukber2025 (8).jpeg",
+                    "img/group/bukber2025/bukber2025 (9).jpeg"
+                ]
+            },
+            "Foto Studio 2025": {
+                title: "Foto Studio 2025",
+                description: "Our latest studio photo session in 2025, capturing our togetherness and unique style.",
+                images: [
+                    "img/group/studio2025/studio1.png",
+                    "img/group/studio2025/studio2.png",
+                    "img/group/studio2025/studio3.png",
+                    "img/group/studio2025/studio4.png",
+                    "img/group/studio2025/studio5.png",
+                    "img/group/studio2025/studio6.png"
+                ]
+            },
+            "Badminton": {
+                title: "Badminton Sessions",
+                description: "Our regular badminton sessions, full of friendly competition and lots of laughs. A great way to stay active together!",
+                images: [
+                    "img/group/badminton2025/badminton (1).jpeg",
+                    "img/group/badminton2025/badminton (2).jpeg",
+                    "img/group/badminton2025/badminton (3).jpeg",
+                    "img/group/badminton2025/badminton (4).jpeg",
+                    "img/group/badminton2025/badminton (5).jpeg"
+                ]
+            }
+        };
+
+        /**
+         * Handles the start of a drag operation.
+         * @param {Event} e - The mouse or touch event.
+         */
+        function dragStart(e) {
+            // Prevent default drag behavior (e.g., ghost image)
+            e.preventDefault();
+
+            // Determine if it's a touch event or mouse event
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            activeDraggable = e.target;
+            activeDraggable.classList.add('dragging');
+
+            // Calculate initial offset from mouse/touch to element's top-left corner
+            const rect = activeDraggable.getBoundingClientRect();
+            initialX = clientX - rect.left;
+            initialY = clientY - rect.top;
+
+            // Get current position (in px) from style, or default to 0 if not set
+            const currentLeft = parseFloat(activeDraggable.style.left) / 100 * window.innerWidth || 0;
+            const currentTop = parseFloat(activeDraggable.style.top) / 100 * window.innerHeight || 0;
+
+            xOffset = currentLeft - initialX;
+            yOffset = currentTop - initialY;
+        }
+
+        /**
+         * Handles the dragging of an element.
+         * @param {Event} e - The mouse or touch event.
+         * @param {HTMLElement} activeDraggable - The element being dragged.
+         */
+        function drag(e) {
+            if (!activeDraggable) return;
+
+            // Prevent default scrolling behavior on touch devices
+            if (e.type.includes('touch')) {
+                e.preventDefault();
+            }
+
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            // Calculate new position in pixels
+            let newX = clientX - initialX;
+            let newY = clientY - initialY;
+
+            // Convert to vw/vh for consistent positioning
+            let newXvw = (newX / window.innerWidth) * 100;
+            let newYvh = (newY / window.innerHeight) * 100;
+
+            // Constrain to viewport boundaries
+            const elementWidthVw = parseFloat(activeDraggable.style.width);
+            const elementHeightVh = parseFloat(activeDraggable.style.height);
+
+            newXvw = Math.max(0, Math.min(newXvw, 100 - elementWidthVw));
+            newYvh = Math.max(0, Math.min(newYvh, 100 - elementHeightVh));
+
+            activeDraggable.style.left = `${newXvw}vw`;
+            activeDraggable.style.top = `${newYvh}vh`;
+        }
+
+        /**
+         * Handles the end of a drag operation.
+         */
+        function dragEnd() {
+            if (activeDraggable) {
+                activeDraggable.classList.remove('dragging');
+                activeDraggable = null;
+            }
+        }
+
+        /**
+         * Shows the image modal with a specific moment's gallery.
+         * @param {string} momentKey - The key for the moment in momentDetails.
+         */
+        function showImageModal(momentKey) {
+            const moment = momentDetails[momentKey];
+            if (!moment) {
+                console.error(`Moment details not found for key: ${momentKey}`);
+                return;
+            }
+
+            modalTitle.textContent = moment.title;
+            modalDescription.textContent = moment.description; // Set the description
+            floatingImagesContainer.innerHTML = ''; // Clear previous images
+
+            const placedRects = []; // To store [leftVw, topVh, widthVw, heightVh] of placed images
+
+            // Define central exclusion zone for description (e.g., 30% to 70% of width/height)
+            const EXCLUSION_H_START = 30;
+            const EXCLUSION_H_END = 70;
+            const EXCLUSION_V_START = 30;
+            const EXCLUSION_V_END = 70;
+
+            // Minimum padding from viewport edges
+            const EDGE_PADDING_VW = 5;
+            const EDGE_PADDING_VH = 5;
+
+            // Function to check for overlap with existing placed rectangles
+            function isOverlapping(newRect, existingRects) {
+                const [newLeft, newTop, newWidth, newHeight] = newRect;
+                // Add a small buffer to avoid images touching exactly
+                const buffer = 1; // 1vw/vh buffer
+
+                for (const rect of existingRects) {
+                    const [oldLeft, oldTop, oldWidth, oldHeight] = rect;
+
+                    // Check for overlap on X axis with buffer
+                    const xOverlap = Math.max(0, Math.min(newLeft + newWidth + buffer, oldLeft + oldWidth + buffer) - Math.max(newLeft - buffer, oldLeft - buffer));
+                    // Check for overlap on Y axis with buffer
+                    const yOverlap = Math.max(0, Math.min(newTop + newHeight + buffer, oldTop + oldHeight + buffer) - Math.max(newTop - buffer, oldTop - buffer));
+
+                    // If there's overlap on both axes, the rectangles intersect
+                    if (xOverlap > 0 && yOverlap > 0) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            moment.images.forEach((src, index) => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.alt = `${moment.title} Image ${index + 1}`;
+                img.classList.add('floating-image');
+
+                // Randomize size (e.g., 15% to 25% of viewport width)
+                const randomWidthVw = Math.random() * (25 - 15) + 15; // in vw
+                const aspectRatio = 4 / 3;
+                const randomHeightVh = (randomWidthVw / aspectRatio) * (window.innerWidth / window.innerHeight);
+
+                img.style.width = `${randomWidthVw}vw`;
+                img.style.height = `${randomHeightVh}vh`;
+
+                let finalLeftVw, finalTopVh;
+                let placed = false;
+                let attempts = 0;
+                const MAX_ATTEMPTS = 100; // Limit attempts to find a non-overlapping spot
+
+                while (!placed && attempts < MAX_ATTEMPTS) {
+                    // Generate random position within safe bounds
+                    let potentialLeftVw = Math.random() * (100 - randomWidthVw - EDGE_PADDING_VW * 2) + EDGE_PADDING_VW;
+                    let potentialTopVh = Math.random() * (100 - randomHeightVh - EDGE_PADDING_VH * 2) + EDGE_PADDING_VH;
+
+                    // Check if potential position overlaps with the central description area
+                    const overlapsDescriptionH = (potentialLeftVw < EXCLUSION_H_END && (potentialLeftVw + randomWidthVw) > EXCLUSION_H_START);
+                    const overlapsDescriptionV = (potentialTopVh < EXCLUSION_V_END && (potentialTopVh + randomHeightVh) > EXCLUSION_V_START);
+
+                    if (overlapsDescriptionH && overlapsDescriptionV) {
+                        attempts++;
+                        continue; // Try again if it overlaps with description
+                    }
+
+                    const newRect = [potentialLeftVw, potentialTopVh, randomWidthVw, randomHeightVh];
+
+                    if (!isOverlapping(newRect, placedRects)) {
+                        finalLeftVw = potentialLeftVw;
+                        finalTopVh = potentialTopVh;
+                        placedRects.push(newRect); // Add to placed rectangles
+                        placed = true;
+                    }
+                    attempts++;
+                }
+
+                // If max attempts reached, place it at the last attempted position (might still overlap)
+                if (!placed) {
+                    console.warn(`Could not find non-overlapping spot for image ${index + 1}.`);
+                    // Fallback to a simple random placement if no perfect spot is found
+                    finalLeftVw = Math.random() * (100 - randomWidthVw - EDGE_PADDING_VW * 2) + EDGE_PADDING_VW;
+                    finalTopVh = Math.random() * (100 - randomHeightVh - EDGE_PADDING_VH * 2) + EDGE_PADDING_VH;
+                }
+
+                img.style.left = `${finalLeftVw}vw`;
+                img.style.top = `${finalTopVh}vh`;
+
+                // Randomize rotation (-20 to +20 degrees)
+                const randomRotation = Math.random() * 40 - 20;
+                img.style.transform = `rotate(${randomRotation}deg)`;
+
+                // Randomize z-index for layering effect
+                img.style.zIndex = Math.floor(Math.random() * 50) + 10; // 10 to 59
+
+                // Apply floating animation with staggered delay
+                img.classList.add('animate-float');
+                img.style.animationDelay = `${index * 0.2}s`;
+
+                // Add a small fade-in after placement
+                img.style.opacity = '0'; // Start hidden
+                setTimeout(() => {
+                    img.style.opacity = '1';
+                }, 50 + index * 100);
+
+                // Add drag event listeners
+                img.addEventListener('mousedown', dragStart);
+                img.addEventListener('touchstart', dragStart); // For touch devices
+
+                floatingImagesContainer.appendChild(img);
+            });
+
+            imageModal.classList.remove('hidden');
+            setTimeout(() => {
+                imageModal.classList.add('show');
+            }, 10);
+            document.body.style.overflow = 'hidden'; // Prevent scrolling background
+        }
+
+        /**
+         * Hides the image modal.
+         */
+        function hideImageModal() {
+            imageModal.classList.remove('show');
+            setTimeout(() => {
+                imageModal.classList.add('hidden');
+                floatingImagesContainer.innerHTML = ''; // Clear images when hidden
+                modalDescription.textContent = ''; // Clear description
+            }, 300); // Match transition duration
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        // Function to dynamically generate gallery items
+        function renderGallery() {
+            galleryGrid.innerHTML = ''; // Clear existing items
+            Object.keys(momentDetails).forEach(key => {
+                const moment = momentDetails[key];
+                const galleryItem = document.createElement('div');
+                galleryItem.classList.add('relative', 'group', 'rounded-2xl', 'overflow-hidden', 'hover-scale', 'cursor-pointer');
+                galleryItem.setAttribute('data-aos', 'fade-up'); // Add AOS animation
+                galleryItem.setAttribute('data-moment-key', key);
+                galleryItem.innerHTML = `
+                    <img src="${moment.images[0]}" alt="${moment.title}"
+                        class="w-full h-80 object-cover">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                        <div class="translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                            <h3 class="text-white text-xl font-semibold">${moment.title}</h3>
+                            <p class="text-white/80">${moment.description.split('.')[0]}</p> <!-- Show first sentence of description -->
+                        </div>
+                    </div>
+                `;
+                galleryItem.addEventListener('click', () => showImageModal(key));
+                galleryGrid.appendChild(galleryItem);
+            });
+        }
+
+
+        // Add global mouse/touch move and up listeners for dragging
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag, { passive: false }); // passive: false to allow preventDefault
+        document.addEventListener('mouseup', dragEnd);
+        document.addEventListener('touchend', dragEnd);
+
+        // Add click listeners to all gallery items
+        document.addEventListener('DOMContentLoaded', () => {
+            renderGallery(); // Render gallery on DOM load
+
+            // Close modal when clicking outside the content or pressing Escape
+            imageModal.addEventListener('click', (e) => {
+                // Only close if clicking on the overlay itself, not the header, description, or images
+                if (e.target === imageModal) {
+                    hideImageModal();
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && imageModal.classList.contains('show')) {
+                    hideImageModal();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
