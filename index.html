@@ -31,6 +31,8 @@
                         'fade-in': 'fadeIn 1.5s ease-out forwards',
                         'text-reveal': 'textReveal 1.5s cubic-bezier(0.77, 0, 0.175, 1) forwards',
                         'gradient-shift': 'gradientShift 8s ease infinite',
+                        // Added animation for cross-fading hero images
+                        'bg-fade-in': 'fadeIn 2s ease-out forwards',
                     },
                     keyframes: {
                         float: {
@@ -108,6 +110,7 @@
             color: transparent;
         }
 
+        /* Responsive Parallax adjustment */
         @media (max-width: 768px) {
             .parallax {
                 background-attachment: scroll;
@@ -252,6 +255,20 @@
             font-weight: 300;
             /* font-light */
         }
+
+        /* New styles for dynamic hero background */
+        .hero-bg-layer {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 1.5s ease-in-out;
+            /* Cross-fade transition */
+            z-index: 5;
+            /* Below the overlay and content, above the base gradient */
+        }
     </style>
 </head>
 
@@ -264,11 +281,23 @@
 
     <!-- Hero Section -->
     <section class="min-h-screen flex flex-col justify-center items-center text-center px-4 relative overflow-hidden">
-        <div
-            class="absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-500 to-red-500 opacity-90 dark:opacity-80">
+        
+        <!-- REMOVED: Old explicit gradient layer. ADDED: Subtle dark overlay for text readability -->
+        <div class="absolute inset-0 bg-black/50 dark:bg-black/70 z-10 transition-colors duration-500"></div> 
+
+        <!-- DYNAMIC HERO BACKGROUND CONTAINER -->
+        <div id="hero-background-wrapper" class="absolute inset-0">
+            <!-- Background images will be generated here by JavaScript -->
         </div>
-        <div class="absolute inset-0 bg-[url('img/group/home.png')] bg-cover bg-center parallax"></div>
-        <div class="relative z-10 max-w-4xl px-6" data-aos="fade-up">
+
+        <!-- DOT NAVIGATION CONTAINER -->
+        <div id="hero-dots"
+            class="absolute bottom-20 left-0 right-0 z-20 flex justify-center space-x-3 opacity-80 animate-fade-in"
+            style="animation-delay: 0.8s;">
+            <!-- Dots will be rendered here -->
+        </div>
+
+        <div class="relative z-20 max-w-4xl px-6" data-aos="fade-up">
             <h1 class="text-7xl md:text-8xl font-bold mb-6 text-white tracking-tight">
                 <span class="inline-block overflow-hidden">
                     <span class="inline-block animate-text-reveal">YTTA</span>
@@ -286,7 +315,8 @@
             </div>
         </div>
 
-        <div class="absolute bottom-8 left-0 right-0 flex justify-center animate-float" style="animation-delay: 1s;">
+        <div class="absolute bottom-8 left-0 right-0 flex justify-center animate-float z-20"
+            style="animation-delay: 1s;">
             <i class="fas fa-angle-down text-2xl text-white/60"></i>
         </div>
     </section>
@@ -327,7 +357,7 @@
                 </div>
                 <div class="rounded-xl overflow-hidden hover-scale">
                     <img src="img/group/intro3.jpg" alt="YTTA moment"
-                        class="w-full h-full object-cover aspect-square">
+                        class="w-full h-full object-cover aspect-square">a
                 </div>
                 <div class="rounded-xl overflow-hidden hover-scale">
                     <img src="img/group/intro4.jpg" alt="YTTA moment"
@@ -454,7 +484,7 @@
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                     </div>
                     <div class="p-6">
-                        <h3 class="text-2xl font-bold mb-1">Adristhi Maheswari Ayuningtyas</h3>
+                        <h3 class="text-2xl font-bold mb-1">Adristhi Maheswari Ayuningtyas </h3>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">"Elegant troublemaker"</p>
                         <p class="text-gray-600 dark:text-gray-300">Classy on the surface but the mastermind behind most
                             of the group's shenanigans.</p>
@@ -467,7 +497,7 @@
     <!-- Quote Section -->
     <section class="py-32 bg-gradient-to-r from-purple-500 to-pink-500 text-center relative overflow-hidden">
         <div
-            class="absolute inset-0 bg-[url('img/group/studio4.png')] bg-cover bg-center parallax opacity-20">
+            class="absolute inset-0 bg-[url('img/group/studio2025/studio4.jpg')] bg-cover bg-center parallax opacity-20">
         </div>
         <div class="relative max-w-4xl mx-auto px-6">
             <h2 class="text-3xl md:text-4xl font-bold text-white mb-8 leading-tight" data-aos="fade-up">
@@ -478,7 +508,7 @@
                     class="px-6 py-3 bg-white/20 backdrop-blur-md border border-white/30 text-white rounded-full hover:bg-white/30 transition-all flex items-center">
                     <i class="fab fa-instagram mr-2"></i> Follow Us
                 </a>
-                <a href="#"
+                <a href="#gallery"
                     class="px-6 py-3 bg-white text-purple-600 rounded-full hover:bg-gray-100 transition-all flex items-center">
                     <i class="fas fa-images mr-2"></i> More Photos
                 </a>
@@ -744,6 +774,22 @@
                     "img/group/badminton2025/badminton (4).jpeg",
                     "img/group/badminton2025/badminton (5).jpeg"
                 ]
+            },
+            // NEW ALBUM ADDED HERE
+            "CW September 2025": {
+                title: "CW September 2025",
+                description: "The latest meetup at CW in September 2025, capturing our freshest memories and continuing the saga.",
+                images: [
+                    "img/group/cwsept2025/cwsept2025 (1).jpeg",
+                    "img/group/cwsept2025/cwsept2025 (2).jpeg",
+                    "img/group/cwsept2025/cwsept2025 (3).jpeg",
+                    "img/group/cwsept2025/cwsept2025 (4).jpeg",
+                    "img/group/cwsept2025/cwsept2025 (5).jpeg",
+                    "img/group/cwsept2025/cwsept2025 (6).jpeg",
+                    "img/group/cwsept2025/cwsept2025 (7).jpeg",
+                    "img/group/cwsept2025/cwsept2025 (8).jpeg",
+                    "img/group/cwsept2025/cwsept2025 (9).jpeg"
+                ]
             }
         };
 
@@ -971,7 +1017,8 @@
         // Function to dynamically generate gallery items
         function renderGallery() {
             galleryGrid.innerHTML = ''; // Clear existing items
-            Object.keys(momentDetails).forEach(key => {
+            // REVERSE THE ORDER OF KEYS FOR NEWEST-FIRST DISPLAY
+            Object.keys(momentDetails).reverse().forEach(key => { 
                 const moment = momentDetails[key];
                 const galleryItem = document.createElement('div');
                 galleryItem.classList.add('relative', 'group', 'rounded-2xl', 'overflow-hidden', 'hover-scale', 'cursor-pointer');
@@ -994,15 +1041,164 @@
         }
 
 
-        // Add global mouse/touch move and up listeners for dragging
-        document.addEventListener('mousemove', drag);
-        document.addEventListener('touchmove', drag, { passive: false }); // passive: false to allow preventDefault
-        document.addEventListener('mouseup', dragEnd);
-        document.addEventListener('touchend', dragEnd);
+        // --- Dynamic Hero Background Logic ---
 
-        // Add click listeners to all gallery items
+        let backgroundImages = [];
+        let currentImageIndex = 0;
+        let rotationInterval; // Variable to hold the interval reference
+        const heroBackgroundWrapper = document.getElementById('hero-background-wrapper');
+        const heroDotsContainer = document.getElementById('hero-dots'); // New reference
+
+        /**
+         * Collects the first image (cover) from every album, shuffles the list.
+         * @returns {string[]} An array of shuffled image URLs.
+         */
+        function getAlbumCovers() {
+            const covers = [];
+            for (const key in momentDetails) {
+                if (momentDetails[key].images.length > 0) {
+                    covers.push(momentDetails[key].images[0]);
+                }
+            }
+            // Simple shuffle (Fisher-Yates) - Shuffling initially is okay, but random selection dictates the next image.
+            for (let i = covers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [covers[i], covers[j]] = [covers[j], covers[i]];
+            }
+            return covers;
+        }
+
+        /**
+         * Updates the hero background to display the image at the given index.
+         * Also updates the navigation dots.
+         * @param {number|null|undefined} manualIndex - The manual index of the image to display, or undefined/null for random selection.
+         */
+        function selectHeroImage(manualIndex) {
+            if (backgroundImages.length === 0) return;
+
+            let nextImageIndex;
+            
+            if (manualIndex !== undefined && manualIndex !== null && manualIndex >= 0 && manualIndex < backgroundImages.length) {
+                // Case 1: Manual selection via dot click
+                nextImageIndex = manualIndex;
+                
+            } else {
+                // Case 2: Automatic rotation (random selection, ensuring no repetition)
+                let newIndex;
+                if (backgroundImages.length === 1) {
+                    newIndex = 0;
+                } else {
+                    do {
+                        newIndex = Math.floor(Math.random() * backgroundImages.length);
+                    } while (newIndex === currentImageIndex); // Avoid showing the same image twice in a row
+                }
+                nextImageIndex = newIndex;
+            }
+
+            const nextImageUrl = backgroundImages[nextImageIndex];
+
+            // 1. Create the new background layer (next image)
+            const newBg = document.createElement('div');
+            newBg.classList.add('hero-bg-layer', 'parallax'); 
+            newBg.style.backgroundImage = `url('${nextImageUrl}')`;
+            newBg.style.opacity = 0;
+            newBg.style.zIndex = 5; 
+
+            // Append the new background
+            heroBackgroundWrapper.appendChild(newBg);
+            
+            // Set current index for reference
+            currentImageIndex = nextImageIndex;
+
+            // 2. Start cross-fade after a tiny delay
+            setTimeout(() => {
+                newBg.style.opacity = 1;
+
+                // 3. Clean up old image(s) after transition completes
+                const oldBgs = heroBackgroundWrapper.children;
+                if (oldBgs.length > 1) {
+                    oldBgs[0].style.opacity = 0;
+
+                    // Remove the invisible element after transition
+                    setTimeout(() => {
+                        if (heroBackgroundWrapper.firstChild === oldBgs[0]) {
+                            heroBackgroundWrapper.removeChild(oldBgs[0]);
+                        }
+                    }, 1600); 
+                }
+
+                // 4. Update dots immediately
+                updateDots(currentImageIndex);
+            }, 50);
+        }
+
+        /**
+         * Renders the navigation dots based on the number of background images.
+         */
+        function renderDots() {
+            heroDotsContainer.innerHTML = '';
+            backgroundImages.forEach((_, index) => {
+                const dot = document.createElement('button');
+                // Use custom Tailwind classes for dots
+                dot.classList.add('w-3', 'h-3', 'rounded-full', 'bg-white', 'transition-all', 'duration-300', 'focus:outline-none', 'hover:opacity-100', 'hover:scale-125');
+                dot.setAttribute('data-index', index);
+                dot.setAttribute('aria-label', `Go to image ${index + 1}`);
+                
+                // Add click listener to manually select the image
+                dot.addEventListener('click', () => {
+                    // Stop the current rotation interval
+                    clearInterval(rotationInterval);
+                    // Select the image manually
+                    selectHeroImage(index);
+                    // Restart the rotation interval immediately after manual selection (2 seconds)
+                    rotationInterval = setInterval(rotateHeroBackground, 2000); 
+                });
+                
+                heroDotsContainer.appendChild(dot);
+            });
+        }
+
+        /**
+         * Updates the visual state of the dots (active/inactive).
+         * @param {number} activeIndex - The index of the currently active image.
+         */
+        function updateDots(activeIndex) {
+            Array.from(heroDotsContainer.children).forEach((dot, index) => {
+                if (index === activeIndex) {
+                    dot.classList.remove('opacity-50');
+                    dot.classList.add('opacity-100', 'shadow-md', 'scale-110');
+                } else {
+                    dot.classList.remove('opacity-100', 'shadow-md', 'scale-110');
+                    dot.classList.add('opacity-50');
+                }
+            });
+        }
+
+        /**
+         * Rotates the hero background automatically to the next image (randomly).
+         */
+        function rotateHeroBackground() {
+            // Call selectHeroImage without an index to trigger the random selection logic
+            selectHeroImage();
+        }
+
+
+        // Initialization
         document.addEventListener('DOMContentLoaded', () => {
             renderGallery(); // Render gallery on DOM load
+
+            // Initialize Background Images
+            backgroundImages = getAlbumCovers();
+            if (backgroundImages.length > 0) {
+                // Render dots first
+                renderDots();
+                
+                // Set initial background image and dot state (start at the first index, 0)
+                selectHeroImage(0);
+
+                // Start rotation loop (set to 2 seconds)
+                rotationInterval = setInterval(rotateHeroBackground, 2000);
+            }
 
             // Close modal when clicking outside the content or pressing Escape
             imageModal.addEventListener('click', (e) => {
@@ -1018,6 +1214,12 @@
                 }
             });
         });
+
+        // Add global mouse/touch move and up listeners for dragging
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag, { passive: false }); // passive: false to allow preventDefault
+        document.addEventListener('mouseup', dragEnd);
+        document.addEventListener('touchend', dragEnd);
     </script>
 </body>
 
