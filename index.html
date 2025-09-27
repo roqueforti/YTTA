@@ -298,12 +298,12 @@
         </div>
 
         <div class="relative z-20 max-w-4xl px-6" data-aos="fade-up">
-            <h1 class="text-7xl md:text-8xl font-bold mb-6 text-white tracking-tight">
+            <h1 class="text-6xl sm:text-7xl md:text-8xl font-bold mb-6 text-white tracking-tight">
                 <span class="inline-block overflow-hidden">
                     <span class="inline-block animate-text-reveal">YTTA</span>
                 </span>
             </h1>
-            <p class="text-xl md:text-2xl text-white/90 font-light mb-8 animate-fade-in" style="animation-delay: 0.3s;">
+            <p class="text-lg md:text-2xl text-white/90 font-light mb-8 animate-fade-in" style="animation-delay: 0.3s;">
                 A Group of Six • Since 2022
             </p>
             <div class="animate-fade-in" style="animation-delay: 0.6s;">
@@ -323,14 +323,14 @@
 
     <!-- About Section -->
     <section id="about" class="min-h-[80vh] py-20 px-6 md:px-24 flex items-center">
-        <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+        <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 md:gap-16 items-center">
             <div class="relative group" data-aos="fade-right">
                 <div
                     class="absolute -inset-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl opacity-20 group-hover:opacity-30 blur-md transition-all duration-500">
                 </div>
                 <div class="relative bg-white dark:bg-neutral-800 p-8 rounded-xl shadow-xl hover-scale">
-                    <h2 class="text-4xl font-bold mb-6 gradient-text">About YTTA</h2>
-                    <p class="text-lg leading-relaxed text-gray-700 dark:text-gray-300 mb-6">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-6 gradient-text">About YTTA</h2>
+                    <p class="text-base md:text-lg leading-relaxed text-gray-700 dark:text-gray-300 mb-6">
                         We are YTTA - a tight-knit group of six friends who share laughter, tears, and countless meals
                         together. From spontaneous adventures to deep midnight conversations, we've created memories
                         that define our bond.
@@ -690,13 +690,10 @@
                 description: "Rocking out at the Dewa 19 concert in 2023! An unforgettable night of music and singing along.",
                 images: [
                     "img/group/konserdewa192023/dewa (1).jpeg",
-                    "img/group/konserdewa192023/dewa (2).jpeg",
-                    "img/group/konserdewa192023/dewa (3).jpeg",
                     "img/group/konserdewa192023/dewa (4).jpeg",
                     "img/group/konserdewa192023/dewa (5).jpeg",
                     "img/group/konserdewa192023/dewa (6).jpeg",
                     "img/group/konserdewa192023/dewa (7).jpeg",
-                    "img/group/konserdewa192023/dewa (8).jpeg"
                 ]
             },
             "Bukber 2024": {
@@ -884,10 +881,16 @@
             const placedRects = []; // To store [leftVw, topVh, widthVw, heightVh] of placed images
 
             // Define central exclusion zone for description (e.g., 30% to 70% of width/height)
-            const EXCLUSION_H_START = 30;
-            const EXCLUSION_H_END = 70;
-            const EXCLUSION_V_START = 30;
-            const EXCLUSION_V_END = 70;
+            // Reduced exclusion zone for smaller screens to maximize space for images
+            const EXCLUSION_H_START = window.innerWidth > 768 ? 30 : 20;
+            const EXCLUSION_H_END = window.innerWidth > 768 ? 70 : 80;
+            const EXCLUSION_V_START = window.innerHeight > 768 ? 30 : 25;
+            const EXCLUSION_V_END = window.innerHeight > 768 ? 70 : 75;
+
+            // Define randomized image size based on screen size
+            const MIN_WIDTH_VW = window.innerWidth > 768 ? 15 : 25;
+            const MAX_WIDTH_VW = window.innerWidth > 768 ? 25 : 35;
+
 
             // Minimum padding from viewport edges
             const EDGE_PADDING_VW = 5;
@@ -921,8 +924,8 @@
                 img.alt = `${moment.title} Image ${index + 1}`;
                 img.classList.add('floating-image');
 
-                // Randomize size (e.g., 15% to 25% of viewport width)
-                const randomWidthVw = Math.random() * (25 - 15) + 15; // in vw
+                // Randomize size based on new min/max defined above
+                const randomWidthVw = Math.random() * (MAX_WIDTH_VW - MIN_WIDTH_VW) + MIN_WIDTH_VW; // in vw
                 const aspectRatio = 4 / 3;
                 const randomHeightVh = (randomWidthVw / aspectRatio) * (window.innerWidth / window.innerHeight);
 
@@ -1099,7 +1102,8 @@
 
             // 1. Create the new background layer (next image)
             const newBg = document.createElement('div');
-            newBg.classList.add('hero-bg-layer', 'parallax'); 
+            // Added h-full and w-full for better responsiveness on mobile
+            newBg.classList.add('hero-bg-layer', 'parallax', 'w-full', 'h-full'); 
             newBg.style.backgroundImage = `url('${nextImageUrl}')`;
             newBg.style.opacity = 0;
             newBg.style.zIndex = 5; 
