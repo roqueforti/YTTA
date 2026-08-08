@@ -44,13 +44,13 @@ export default function CinematicRecap({ active, onBack }) {
     if (scene.type === "opening") return <div className="film-card opening-card"><small>A MEMORY FILM</small><h1>Potongan Waktu</h1><p>2022 — 2026</p></div>;
     if (scene.type === "chapter") return <div className="film-card chapter-card"><small>MEMORY CHAPTER</small><h2>{scene.chapter.title}</h2><p>{scene.chapter.dateLabel}</p></div>;
     if (scene.type === "ending") return <div className="film-card ending-card"><small>UNTIL THE NEXT MEMORY</small><h2>Terima kasih<br />untuk kenangannya.</h2><p>YTTA · 2022—2026</p></div>;
-    return <><KenBurnsEffect photo={scene.photo} direction={scene.index} />{scene.impactful && <blockquote className="film-quote">“{scene.photo.quote}”<small>{scene.chapter.title}</small></blockquote>}</>;
+    return <><KenBurnsEffect photo={scene.photo} direction={scene.index} duration={scene.duration} />{scene.impactful && <blockquote className="film-quote">“{scene.photo.quote}”<small>{scene.chapter.title}</small></blockquote>}</>;
   }, [scene]);
 
   if (loaded < photos.length) return <div className="film-loader"><div className="reel-count">{Math.max(1, 3 - Math.floor(loaded / Math.max(1, photos.length / 3)))}</div><small>PREPARING FILM REEL</small><div><span style={{ width: `${loaded / photos.length * 100}%` }} /></div><p>{loaded} / {photos.length}</p></div>;
 
   return <section className="cinematic-mode" onMouseMove={showControls} onTouchStart={showControls}>
-    <div key={scene.index} className={`film-scene scene-${scene.type}`}>{sceneContent}</div>
+    <div key={scene.index} className={`film-scene scene-${scene.type} transition-${scene.index % 4}`}>{sceneContent}</div>
     <div className="film-grade" /><div className="film-grain" /><div className="letterbox top" /><div className="letterbox bottom" />
     <div className={`film-controls ${controlsVisible || !playing ? "visible" : ""}`}>
       <button onClick={togglePlayback} aria-label={playing ? "Jeda" : "Putar"}>{playing ? "Ⅱ" : "▶"}</button>

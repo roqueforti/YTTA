@@ -11,6 +11,8 @@ export default function PlanetariumSphere({ active }) {
   const [spotlight, setSpotlight] = useState(null);
   const [visibleCount, setVisibleCount] = useState(14);
   const [gyro, setGyro] = useState(false);
+  const spotlightBag = useRef([]);
+  const lastSpotlight = useRef(null);
   const textureLoaded = useCallback(() => setLoaded((value) => value + 1), []);
 
   const enableGyro = async () => {
@@ -29,16 +31,27 @@ export default function PlanetariumSphere({ active }) {
   }, [active, spotlight, displayPhotos.length]);
 
   useEffect(() => {
-    if (!active || !visibleCount) return;
-    const cycle = window.setInterval(() => setSpotlight((current) => pickRandomIndex(current, visibleCount)), 7600);
+    if (!active || visibleCount < displayPhotos.length) return;
+    const cycle = window.setInterval(() => {
+      const next = takeFromShuffleBag(spotlightBag.current, displayPhotos.length, lastSpotlight.current);
+      lastSpotlight.current = next;
+      setSpotlight(next);
+    }, 7600);
     return () => clearInterval(cycle);
-  }, [active, visibleCount]);
+  }, [active, visibleCount, displayPhotos.length]);
+
+  const selectSpotlight = useCallback((index) => {
+    if (!spotlightBag.current.length) spotlightBag.current.push(...shufflePhotos(Array.from({ length: displayPhotos.length }, (_, item) => item)));
+    spotlightBag.current = spotlightBag.current.filter((item) => item !== index);
+    lastSpotlight.current = index;
+    setSpotlight(index);
+  }, [displayPhotos.length]);
 
   return (
     <section className="galaxy-mode">
       <Canvas camera={{ position: [0, 0, 0.01], fov: 62, near: 0.1, far: 160 }} dpr={[1, 1.6]}>
         <color attach="background" args={["#02030a"]} />
-        <GalaxyScene photos={displayPhotos} active={active} gyro={gyro} visibleCount={visibleCount} spotlight={spotlight} setSpotlight={setSpotlight} onTexture={textureLoaded} />
+        <GalaxyScene photos={displayPhotos} active={active} gyro={gyro} visibleCount={visibleCount} spotlight={spotlight} setSpotlight={selectSpotlight} onTexture={textureLoaded} />
       </Canvas>
       {active && loaded < visibleCount && <div className="asset-progress"><span style={{ width: `${Math.round(loaded / visibleCount * 100)}%` }} /></div>}
       {spotlight != null && active && <aside className="galaxy-quote" key={spotlight}><small>{String(spotlight + 1).padStart(2, "0")} / {displayPhotos.length}</small><blockquote>{displayPhotos[spotlight].quote}</blockquote><p>{displayPhotos[spotlight].title}</p></aside>}
@@ -180,9 +193,10 @@ function shufflePhotos(items) {
   return shuffled;
 }
 
-function pickRandomIndex(current, count) {
-  if (count <= 1) return 0;
-  let next = Math.floor(Math.random() * count);
-  while (next === current) next = Math.floor(Math.random() * count);
-  return next;
+function takeFromShuffleBag(bag, count, previous) {
+  if (!bag.length) {
+    bag.push(...shufflePhotos(Array.from({ length: count }, (_, index) => index)));
+    if (count > 1 && bag.at(-1) === previous) [bag[0], bag[bag.length - 1]] = [bag.at(-1), bag[0]];
+  }
+  return bag.pop();
 }

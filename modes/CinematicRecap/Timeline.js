@@ -15,9 +15,7 @@ export function buildChapters() {
 
 export function buildScenes() {
   const chapters = buildChapters();
-  const photoCount = chapters.reduce((sum, chapter) => sum + chapter.photos.length, 0);
-  const fixedTime = OPENING_DURATION + ENDING_DURATION + chapters.length * (TITLE_DURATION + 0.8);
-  const photoDuration = Math.max(1.25, Math.min(2.1, (238 - fixedTime) / photoCount));
+  const photoDuration = 2.8;
   const scenes = [{ type: "opening", duration: OPENING_DURATION }];
   chapters.forEach((chapter, chapterIndex) => {
     scenes.push({ type: "chapter", chapter, duration: TITLE_DURATION });
@@ -25,7 +23,7 @@ export function buildScenes() {
       const impactful = photoIndex === Math.floor(chapter.photos.length / 2);
       scenes.push({
         type: "photo", photo, chapter, photoIndex, chapterIndex,
-        impactful, duration: photoDuration + (impactful ? 0.8 : 0),
+        impactful, duration: photoDuration + (impactful ? 1.4 : 0),
       });
     });
   });

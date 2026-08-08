@@ -11,6 +11,8 @@ export default function MemoryWall({ active }) {
   const [spotlight, setSpotlight] = useState(null);
   const [loaded, setLoaded] = useState(0);
   const [autoOpen, setAutoOpen] = useState(true);
+  const spotlightBag = useRef([]);
+  const lastSpotlight = useRef(null);
 
   useEffect(() => {
     if (!active) return;
@@ -19,16 +21,22 @@ export default function MemoryWall({ active }) {
   }, [active, displayPhotos.length]);
 
   useEffect(() => {
-    if (!active || !visibleCount || !autoOpen) return;
+    if (!active || visibleCount < displayPhotos.length || !autoOpen) return;
     const cycle = setInterval(() => {
-      setSpotlight((current) => {
-        const next = pickRandomIndex(current, visibleCount);
-        cardRefs.current[next]?.scrollIntoView({ behavior: "smooth", inline: "center", block: "center" });
-        return next;
-      });
+      const next = takeFromShuffleBag(spotlightBag.current, displayPhotos.length, lastSpotlight.current);
+      lastSpotlight.current = next;
+      cardRefs.current[next]?.scrollIntoView({ behavior: "smooth", inline: "center", block: "center" });
+      setSpotlight(next);
     }, 7800);
     return () => clearInterval(cycle);
-  }, [active, visibleCount, autoOpen]);
+  }, [active, visibleCount, autoOpen, displayPhotos.length]);
+
+  const selectSpotlight = (index) => {
+    if (!spotlightBag.current.length) spotlightBag.current.push(...shufflePhotos(Array.from({ length: displayPhotos.length }, (_, item) => item)));
+    spotlightBag.current = spotlightBag.current.filter((item) => item !== index);
+    lastSpotlight.current = index;
+    setSpotlight(index);
+  };
 
   useEffect(() => {
     const rail = railRef.current;
@@ -58,7 +66,7 @@ export default function MemoryWall({ active }) {
               ref={(node) => { cardRefs.current[index] = node; }}
               className="polaroid"
               style={{ "--lane": lane, "--depth": depth, "--tilt": `${tilt}deg`, "--delay": `${-(index % 13) * 0.37}s` }}
-              onClick={() => setSpotlight(index)}
+              onClick={() => selectSpotlight(index)}
             >
               <i className="pin" /><img src={photo.thumbnail} alt={photo.title} loading={index < 12 ? "eager" : "lazy"} onLoad={() => setLoaded((value) => value + 1)} /><span>{photo.title}</span>
             </button>
@@ -100,11 +108,12 @@ function shufflePhotos(items) {
   return shuffled;
 }
 
-function pickRandomIndex(current, count) {
-  if (count <= 1) return 0;
-  let next = Math.floor(Math.random() * count);
-  while (next === current) next = Math.floor(Math.random() * count);
-  return next;
+function takeFromShuffleBag(bag, count, previous) {
+  if (!bag.length) {
+    bag.push(...shufflePhotos(Array.from({ length: count }, (_, index) => index)));
+    if (count > 1 && bag.at(-1) === previous) [bag[0], bag[bag.length - 1]] = [bag.at(-1), bag[0]];
+  }
+  return bag.pop();
 }
 
 function Dust() {
