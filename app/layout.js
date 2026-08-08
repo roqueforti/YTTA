@@ -1,5 +1,6 @@
 import { DM_Sans, Kalam, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import SecurityGuard from "@/components/SecurityGuard";
 
 const sans = DM_Sans({ subsets: ["latin"], variable: "--font-sans" });
 const serif = Playfair_Display({ subsets: ["latin"], variable: "--font-serif" });
@@ -13,7 +14,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="id">
-      <body className={`${sans.variable} ${serif.variable} ${handwriting.variable}`}>{children}</body>
+      <body className={`${sans.variable} ${serif.variable} ${handwriting.variable}`}><SecurityGuard />{children}</body>
     </html>
   );
 }
