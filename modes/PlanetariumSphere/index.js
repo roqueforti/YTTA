@@ -21,6 +21,7 @@ export default function PlanetariumSphere({ active }) {
   const textureLoaded = useCallback(() => setLoaded((value) => value + 1), []);
 
   const enableGyro = async () => {
+    if (gyro) { setGyro(false); setAutoTour(true); return; }
     const Orientation = window.DeviceOrientationEvent;
     if (!Orientation) return;
     if (typeof Orientation.requestPermission === "function" && await Orientation.requestPermission() !== "granted") return;
@@ -121,15 +122,16 @@ function GalaxyScene({ photos: displayPhotos, active, gyro, autoTour, visibleCou
     const canvas = gl.domElement;
     const down = (event) => { onInteraction(); look.current.dragging = true; look.current.x = event.clientX; look.current.y = event.clientY; canvas.setPointerCapture(event.pointerId); };
     const move = (event) => {
-      if (!look.current.dragging || spotlight != null) return;
+      if (!look.current.dragging) return;
       onInteraction();
       look.current.yaw -= (event.clientX - look.current.x) * 0.0032;
       look.current.pitch = THREE.MathUtils.clamp(look.current.pitch - (event.clientY - look.current.y) * 0.0032, -1.35, 1.35);
       look.current.x = event.clientX; look.current.y = event.clientY;
     };
-    const up = () => { look.current.dragging = false; };
-    canvas.addEventListener("pointerdown", down); canvas.addEventListener("pointermove", move); canvas.addEventListener("pointerup", up);
-    return () => { canvas.removeEventListener("pointerdown", down); canvas.removeEventListener("pointermove", move); canvas.removeEventListener("pointerup", up); };
+    const up = (event) => { look.current.dragging = false; if (event?.pointerId != null && canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId); };
+    canvas.style.touchAction = "none";
+    canvas.addEventListener("pointerdown", down); canvas.addEventListener("pointermove", move); canvas.addEventListener("pointerup", up); canvas.addEventListener("pointercancel", up);
+    return () => { canvas.removeEventListener("pointerdown", down); canvas.removeEventListener("pointermove", move); canvas.removeEventListener("pointerup", up); canvas.removeEventListener("pointercancel", up); };
   }, [gl, spotlight, onInteraction]);
 
   useEffect(() => {

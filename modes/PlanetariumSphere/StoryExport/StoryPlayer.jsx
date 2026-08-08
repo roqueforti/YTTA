@@ -5,9 +5,10 @@ import * as THREE from "three";
 import { buildStoryLayout, STORY_DURATION } from "./FlyThroughPath";
 import { STORY_FOV } from "./VerticalFraming";
 
-export default function StoryPlayer({ photos, playing, runId, watermark, onFinish }) {
+export default function StoryPlayer({ photos, playing, runId, watermark, onFinish, onCanvasReady, onSceneChange }) {
   const [sceneIndex, setSceneIndex] = useState(0);
-  return <div className="story-frame"><Canvas key={runId} camera={{ position: [0, 0, 1.5], fov: STORY_FOV, near: .1, far: 100 }} dpr={[1, 1.5]}><color attach="background" args={["#02030a"]} /><StoryScene photos={photos} playing={playing} onScene={setSceneIndex} onFinish={onFinish} /></Canvas><div className="story-vignette" /><div className="story-safe top">GALAKSI KENANGAN <i>·</i> YTTA</div><blockquote key={`${runId}-${sceneIndex}`}>“{photos[sceneIndex]?.quote}”<small>{photos[sceneIndex]?.event} · {photos[sceneIndex]?.dateLabel}</small></blockquote>{watermark && <span className="story-watermark">YTTA<br /><small>MEMORY ARCHIVE</small></span>}</div>;
+  useEffect(() => { onSceneChange?.(sceneIndex); }, [sceneIndex, onSceneChange]);
+  return <div className="story-frame"><Canvas key={runId} onCreated={({ gl }) => onCanvasReady?.(gl.domElement)} camera={{ position: [0, 0, 1.5], fov: STORY_FOV, near: .1, far: 100 }} dpr={[1, 1.5]} gl={{ preserveDrawingBuffer: true }}><color attach="background" args={["#02030a"]} /><StoryScene photos={photos} playing={playing} onScene={setSceneIndex} onFinish={onFinish} /></Canvas><div className="story-vignette" /><div className="story-safe top">GALAKSI KENANGAN <i>·</i> YTTA</div><blockquote key={`${runId}-${sceneIndex}`}>“{photos[sceneIndex]?.quote}”<small>{photos[sceneIndex]?.event} · {photos[sceneIndex]?.dateLabel}</small></blockquote>{watermark && <span className="story-watermark">YTTA<br /><small>MEMORY ARCHIVE</small></span>}</div>;
 }
 
 function StoryScene({ photos, playing, onScene, onFinish }) {

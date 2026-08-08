@@ -76,6 +76,10 @@ export function AudioProvider({ children }) {
   const pause = useCallback(() => { soundRef.current?.pause(); setPlaying(false); }, []);
   const resume = useCallback(() => { soundRef.current?.play(); setPlaying(true); }, []);
   const seekAudio = useCallback((seconds = 0) => soundRef.current?.seek(seconds), []);
+  const getAudioCaptureStream = useCallback(() => {
+    const node = soundRef.current?._sounds?.[0]?._node;
+    return node?.captureStream?.() ?? node?.mozCaptureStream?.() ?? null;
+  }, []);
 
   const selectTrack = useCallback((index) => {
     const nextSound = soundsRef.current[index];
@@ -99,7 +103,7 @@ export function AudioProvider({ children }) {
     setPlaying(false);
   }, []);
 
-  return <AudioContext.Provider value={{ muted, playing, currentTrack, tracks: TRACKS, start, stop, selectTrack, toggleMute, fadeTo, pause, resume, seekAudio }}>{children}</AudioContext.Provider>;
+  return <AudioContext.Provider value={{ muted, playing, currentTrack, tracks: TRACKS, start, stop, selectTrack, toggleMute, fadeTo, pause, resume, seekAudio, getAudioCaptureStream }}>{children}</AudioContext.Provider>;
 }
 
 export const useAudio = () => useContext(AudioContext);
