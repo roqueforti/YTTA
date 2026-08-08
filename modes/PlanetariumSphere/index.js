@@ -140,7 +140,14 @@ function SpherePhoto({ photo, index, total, active, dimmed, onClick, onLoad, mes
     return () => { alive = false; };
   }, [photo.thumbnail, onLoad]);
 
-  useEffect(() => { if (mesh.current && texture) { mesh.current.lookAt(0, 0, 0); mesh.current.rotateY(Math.PI); meshRefs.current[index] = mesh.current; } }, [index, meshRefs, texture]);
+  useEffect(() => {
+    if (mesh.current && texture) {
+      // PlaneGeometry faces +Z and Object3D.lookAt points +Z at the target.
+      // No extra 180° Y rotation: that exposes the back face and mirrors it.
+      mesh.current.lookAt(0, 0, 0);
+      meshRefs.current[index] = mesh.current;
+    }
+  }, [index, meshRefs, texture]);
   useEffect(() => () => texture?.dispose(), [texture]);
   useFrame((_, delta) => {
     if (!mesh.current || !material.current) return;
