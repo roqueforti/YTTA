@@ -171,13 +171,78 @@ const albums = [
       "Cerita berlanjut, dan kita masih ada di dalamnya.",
     ],
   },
+  {
+    title: "Adristhi Semhas 2026",
+    prefix: "/img/group/adristhisemhas2026/",
+    files: Array.from({ length: 9 }, (_, index) => `adristhisemhas (${index + 1}).webp`),
+    quotes: [
+      "Hari penting terasa lebih hangat saat dirayakan bersama.",
+      "Di depan kampus, satu babak baru resmi dimulai.",
+      "Perjuangan panjang akhirnya punya foto kemenangan.",
+      "Senyum hari ini menyimpan semua lelah yang terbayar.",
+      "Selempang itu bukan akhir, melainkan tanda sudah sejauh ini.",
+      "Teman yang baik hadir bukan hanya di hari yang mudah.",
+      "Setelah presentasi selesai, giliran bahagia yang berbicara.",
+      "Kita merayakan satu pencapaian seolah milik bersama.",
+      "Semoga langkah berikutnya selalu dikelilingi orang-orang baik.",
+    ],
+  },
+  {
+    title: "Salwa Semhas 2026",
+    prefix: "/img/group/salwasemhas2026/",
+    files: Array.from({ length: 3 }, (_, index) => `salwasemhas2026 (${index + 1}).webp`),
+    quotes: [
+      "Bunga, papan ucapan, dan bangga yang sulit disembunyikan.",
+      "Hari kelulusan sementara; kenangannya tinggal lebih lama.",
+      "Di balik setiap pencapaian, ada teman-teman yang ikut percaya.",
+    ],
+  },
+  {
+    title: "Kopjay 2026",
+    prefix: "/img/group/kopjay2026/",
+    files: ["kopjay2026.webp"],
+    quotes: ["Kopi, cerita, dan satu meja yang kembali mempertemukan kita."],
+  },
+  {
+    title: "Marsha Semhas 2026",
+    prefix: "/img/group/marshasemhas2026/",
+    files: Array.from({ length: 2 }, (_, index) => `marshasemhas2026 (${index + 1}).webp`),
+    quotes: [
+      "Hari besar pantas mendapat senyum yang sebesar ini.",
+      "Satu langkah selesai, banyak mimpi baru menunggu dimulai.",
+    ],
+  },
+  {
+    title: "Ulansa 2026",
+    prefix: "/img/group/ulansa2026/",
+    files: ["ulansa (1).webp", "ulansa (5).webp", "ulansa (6).webp", "ulansa (7).webp"],
+    quotes: [
+      "Pertemuan singkat pun cukup untuk mengisi ulang energi.",
+      "Satu meja ramai adalah bentuk bahagia yang paling jujur.",
+      "Foto kedua, karena satu saja tidak cukup menyimpan suasana.",
+      "Sebelum pulang, kita pastikan hari ini punya bukti.",
+    ],
+  },
+  {
+    title: "Wiesye Semhas 2026",
+    prefix: "/img/group/wiesyesemhas2026/",
+    files: Array.from({ length: 3 }, (_, index) => `wiesyesemhas (${index + 1}).webp`),
+    quotes: [
+      "Pencapaianmu menjadi alasan kami ikut tersenyum.",
+      "Datang bersama, memberi selamat, lalu membawa pulang kenangan.",
+      "Hari ini milikmu, tetapi bahagianya terasa milik kita semua.",
+    ],
+  },
 ];
 
-export const photos = albums.flatMap(({ title, prefix, suffix, quotes }) =>
-  quotes.map((quote, index) => ({
-    image: `${basePath}${prefix}${index + 1}${suffix}`,
-    thumbnail: `${basePath}${prefix.replace("/img/", "/textures/")}${index + 1}${suffix}`,
-    quote,
-    title,
-  })),
+export const photos = albums.flatMap(({ title, prefix, suffix, files, quotes }) =>
+  quotes.map((quote, index) => {
+    const filename = files?.[index] ?? `${index + 1}${suffix}`;
+    return {
+      image: `${basePath}${prefix}${filename}`,
+      thumbnail: `${basePath}${prefix.replace("/img/", "/textures/")}${filename}`,
+      quote,
+      title,
+    };
+  }),
 );
