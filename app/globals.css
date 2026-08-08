@@ -85,3 +85,27 @@ img{-webkit-user-drag:none;user-select:none}.privacy-shield{position:fixed;z-ind
 /* Keep the two active landing modes balanced in the viewport. */
 @media(min-width:1001px){.mode-grid{width:min(1320px,100%);max-width:none;margin-inline:auto;grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(min-width:701px) and (max-width:1000px){.mode-grid{width:min(880px,100%);margin-inline:auto}}
+
+/* Compact mobile control deck for immersive modes. */
+@media(max-width:700px){
+  .experience-nav{top:env(safe-area-inset-top);display:grid;grid-template-columns:40px minmax(0,1fr);gap:8px;align-items:center;padding:12px;}
+  .back-mode{display:grid;width:40px;height:40px;padding:0;place-items:center;border-color:rgba(159,174,211,.32);background:rgba(7,10,22,.78);font-size:14px;}
+  .audio-controls{display:grid;width:100%;grid-template-columns:minmax(0,1fr) 36px 36px;gap:6px;}
+  .music-picker,.music-current{width:100%;min-width:0;}
+  .music-current{height:40px;padding:5px 10px;border-radius:10px;}
+  .music-current small{margin-bottom:2px;}
+  .music-current b{display:block;max-width:100%;font-size:8px;}
+  .chrome-circle{width:36px!important;height:36px!important;min-width:36px;flex-basis:36px;border-color:rgba(159,174,211,.32);}
+  .music-menu{top:46px;right:-78px;width:min(320px,calc(100vw - 24px));}
+  .story-export-toggle,.tour-status,.theme-galaxy .gyro-toggle{top:calc(env(safe-area-inset-top) + 62px);height:34px;border-color:rgba(159,174,211,.38);background:rgba(7,10,22,.82);backdrop-filter:blur(14px);}
+  .story-export-toggle{left:12px;display:flex;width:82px;justify-content:center;padding:0 10px;border-radius:10px;}
+  .story-export-toggle span{display:inline;font-size:0;}
+  .story-export-toggle span:after{content:"STORY";font-size:6px;letter-spacing:.16em;}
+  .tour-status{left:50%;right:auto;padding:0 11px;transform:translateX(-50%);border-radius:10px;font-size:5px;white-space:nowrap;}
+  .theme-galaxy .gyro-toggle{right:12px;width:72px;padding:0;border-radius:10px;color:#bec8df;}
+  .theme-galaxy .gyro-toggle.on{background:rgba(91,111,163,.28);color:#fff;}
+  .mode-instruction{bottom:calc(env(safe-area-inset-bottom) + 13px);max-width:92vw;overflow:hidden;text-align:center;text-overflow:ellipsis;white-space:nowrap;font-size:6px;}
+  .experience-nav,.gyro-toggle,.story-export-toggle,.tour-status,.mode-instruction{transition:opacity .35s,transform .35s;}
+  .chrome-hidden .story-export-toggle,.chrome-hidden .tour-status,.chrome-hidden .gyro-toggle{opacity:0;transform:translateY(-8px);pointer-events:none;}
+  .chrome-hidden .tour-status{transform:translate(-50%,-8px);}
+}
