@@ -24,6 +24,15 @@ const modes = [
   },
 ];
 
+const people = [
+  ["adristhi.webp", "Adristhi"],
+  ["doni.webp", "Doni"],
+  ["hilman.webp", "Hilman"],
+  ["marsha.webp", "Marsha"],
+  ["salwa.webp", "Salwa"],
+  ["wiesye.webp", "Wiesye"],
+];
+
 export default function ModeSelector({ onSelect }) {
   return (
     <main className="mode-selector">
@@ -33,6 +42,17 @@ export default function ModeSelector({ onSelect }) {
         <span className="eyebrow">CHOOSE YOUR JOURNEY</span>
         <h1>Tiga cara untuk<br /><em>mengingat kembali.</em></h1>
         <p>Pilih bagaimana kamu ingin menyusuri cerita kita.</p>
+      </section>
+      <section className="archive-cast" aria-label="Orang-orang dalam arsip kenangan">
+        <small>THE PEOPLE IN THESE MEMORIES</small>
+        <div className="portrait-reel">
+          {people.map(([file, name], index) => (
+            <figure key={file} style={{ "--portrait-index": index }}>
+              <img src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/img/individual/${file}`} alt={name} />
+              <figcaption>{name}</figcaption>
+            </figure>
+          ))}
+        </div>
       </section>
       <section className="mode-grid">
         {modes.map((mode) => (
