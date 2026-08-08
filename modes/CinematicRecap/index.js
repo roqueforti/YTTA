@@ -7,8 +7,8 @@ import { useAudioSync } from "./AudioSync";
 import { photos } from "@/data/photos";
 import { useAudio } from "@/shared/AudioManager";
 
-export default function CinematicRecap({ active, onBack }) {
-  const [loaded, setLoaded] = useState(0);
+export default function CinematicRecap({ active, onBack, prepared = false }) {
+  const [loaded, setLoaded] = useState(prepared ? photos.length : 0);
   const [finished, setFinished] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimer = useRef();
@@ -18,6 +18,7 @@ export default function CinematicRecap({ active, onBack }) {
   useAudioSync(scene, playing);
 
   useEffect(() => {
+    if (prepared) { setLoaded(photos.length); return; }
     let cancelled = false;
     photos.forEach((photo) => {
       const image = new Image();
@@ -25,7 +26,7 @@ export default function CinematicRecap({ active, onBack }) {
       image.src = photo.image;
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [prepared]);
 
   useEffect(() => {
     if (active && loaded === photos.length) seekAudio(0);

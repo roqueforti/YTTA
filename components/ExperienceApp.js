@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import ModeSelector from "./ModeSelector";
 import { AudioProvider, useAudio } from "@/shared/AudioManager";
+import { prepareExperienceAssets, unsubscribeAssetProgress } from "@/shared/AssetPreloader";
 
 const PlanetariumSphere = dynamic(() => import("@/modes/PlanetariumSphere"), { ssr: false });
 const MemoryWall = dynamic(() => import("@/modes/MemoryWall"), { ssr: false });
@@ -16,11 +17,20 @@ export default function ExperienceApp() {
 function ExperienceRouter() {
   const [mode, setMode] = useState(null);
   const [started, setStarted] = useState(false);
+  const [preparation, setPreparation] = useState({ completed: 0, total: 0, progress: 0 });
   const { muted, currentTrack, tracks, start, stop, selectTrack, toggleMute } = useAudio();
   const chooseMode = async (nextMode) => { setMode(nextMode); setStarted(false); await start(); };
   const enter = async () => { await start(); setStarted(true); };
   const back = () => { stop(); setMode(null); setStarted(false); };
-  if (!mode) return <ModeSelector onSelect={chooseMode} />;
+  useEffect(() => {
+    PlanetariumSphere.preload?.();
+    MemoryWall.preload?.();
+    CinematicRecap.preload?.();
+    prepareExperienceAssets(setPreparation);
+    return () => unsubscribeAssetProgress(setPreparation);
+  }, []);
+
+  if (!mode) return <ModeSelector onSelect={chooseMode} preparation={preparation} />;
 
   const names = { galaxy: "GALAKSI KENANGAN", wall: "LORONG KENANGAN", cinematic: "CINEMATIC RECAP" };
   const titles = { galaxy: "Galaksi Kenangan", wall: "Lorong Kenangan", cinematic: "Cinematic Recap" };
@@ -32,7 +42,7 @@ function ExperienceRouter() {
   };
 
   return <main className={`experience-shell theme-${mode}`}>
-    {mode === "galaxy" ? <PlanetariumSphere active={started} /> : mode === "wall" ? <MemoryWall active={started} /> : <CinematicRecap active={started} onBack={back} />}
+    {mode === "galaxy" ? <PlanetariumSphere active={started} /> : mode === "wall" ? <MemoryWall active={started} /> : <CinematicRecap active={started} onBack={back} prepared={preparation.progress >= 1} />}
     <header className="experience-nav">
       <button className="back-mode" onClick={back} aria-label="Kembali ke pilihan mode">← <span>PILIH MODE</span></button>
       <strong>{names[mode]}</strong>

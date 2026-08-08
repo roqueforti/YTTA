@@ -33,11 +33,16 @@ const people = [
   ["marsha.webp", "Marsha"],
 ];
 
-export default function ModeSelector({ onSelect }) {
+export default function ModeSelector({ onSelect, preparation }) {
   return (
     <main className="mode-selector">
       <div className="selector-grain" />
       <header className="selector-header"><span>YTTA</span><small>THE MEMORY ARCHIVE</small></header>
+      <div className={`landing-preparation ${preparation?.progress >= 1 ? "ready" : ""}`}>
+        <span>{preparation?.progress >= 1 ? "ALL EXPERIENCES READY" : "PREPARING ALL EXPERIENCES"}</span>
+        <i><b style={{ width: `${Math.round((preparation?.progress ?? 0) * 100)}%` }} /></i>
+        <small>{Math.round((preparation?.progress ?? 0) * 100)}%</small>
+      </div>
       <section className="selector-intro">
         <span className="eyebrow">CHOOSE YOUR JOURNEY</span>
         <h1>Tiga cara untuk<br /><em>mengingat kembali.</em></h1>
