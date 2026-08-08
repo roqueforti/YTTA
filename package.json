@@ -1,0 +1,17 @@
+{
+  "name": "ytta-memory-sphere",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "gsap": "3.13.0",
+    "next": "15.5.23",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "three": "0.179.1"
+  }
+}
