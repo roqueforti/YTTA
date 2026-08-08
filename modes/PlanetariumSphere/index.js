@@ -13,6 +13,7 @@ export default function PlanetariumSphere({ active }) {
   const [gyro, setGyro] = useState(false);
   const spotlightBag = useRef([]);
   const lastSpotlight = useRef(null);
+  const firstSpotlightDone = useRef(false);
   const textureLoaded = useCallback(() => setLoaded((value) => value + 1), []);
 
   const enableGyro = async () => {
@@ -25,10 +26,27 @@ export default function PlanetariumSphere({ active }) {
   useEffect(() => {
     if (!active) return;
     const reveal = window.setInterval(() => {
-      if (spotlight == null) setVisibleCount((count) => Math.min(displayPhotos.length, count + 6));
-    }, 850);
+      setVisibleCount((count) => {
+        const next = Math.min(displayPhotos.length, count + 25);
+        if (next === displayPhotos.length) clearInterval(reveal);
+        return next;
+      });
+    }, 250);
     return () => clearInterval(reveal);
-  }, [active, spotlight, displayPhotos.length]);
+  }, [active, displayPhotos.length]);
+
+  useEffect(() => {
+    if (!active || firstSpotlightDone.current) return;
+    const first = window.setTimeout(() => {
+      if (!spotlightBag.current.length) spotlightBag.current.push(...shufflePhotos(Array.from({ length: displayPhotos.length }, (_, index) => index)));
+      const next = Math.floor(Math.random() * Math.min(14, displayPhotos.length));
+      spotlightBag.current = spotlightBag.current.filter((index) => index !== next);
+      lastSpotlight.current = next;
+      firstSpotlightDone.current = true;
+      setSpotlight(next);
+    }, 1500);
+    return () => clearTimeout(first);
+  }, [active, displayPhotos.length]);
 
   useEffect(() => {
     if (!active || visibleCount < displayPhotos.length) return;
