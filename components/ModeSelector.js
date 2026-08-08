@@ -26,11 +26,11 @@ const modes = [
 
 const people = [
   ["adristhi.webp", "Adristhi"],
-  ["doni.webp", "Doni"],
   ["hilman.webp", "Hilman"],
-  ["marsha.webp", "Marsha"],
-  ["salwa.webp", "Salwa"],
   ["wiesye.webp", "Wiesye"],
+  ["doni.webp", "Doni"],
+  ["salwa.webp", "Salwa"],
+  ["marsha.webp", "Marsha"],
 ];
 
 export default function ModeSelector({ onSelect }) {
