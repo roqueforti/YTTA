@@ -1,8 +1,9 @@
-import { DM_Sans, Playfair_Display } from "next/font/google";
+import { DM_Sans, Kalam, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 const sans = DM_Sans({ subsets: ["latin"], variable: "--font-sans" });
 const serif = Playfair_Display({ subsets: ["latin"], variable: "--font-serif" });
+const handwriting = Kalam({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-hand" });
 
 export const metadata = {
   title: "YTTA — Memory Sphere",
@@ -12,7 +13,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="id">
-      <body className={`${sans.variable} ${serif.variable}`}>{children}</body>
+      <body className={`${sans.variable} ${serif.variable} ${handwriting.variable}`}>{children}</body>
     </html>
   );
 }

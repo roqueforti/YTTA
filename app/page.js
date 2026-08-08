@@ -1,5 +1,5 @@
-import MemorySphere from "@/components/MemorySphere";
+import ExperienceApp from "@/components/ExperienceApp";
 
 export default function Home() {
-  return <MemorySphere />;
+  return <ExperienceApp />;
 }

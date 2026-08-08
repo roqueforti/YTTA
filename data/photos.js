@@ -1,3 +1,5 @@
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 const albums = [
   {
     title: "Kogu 2022",
@@ -173,7 +175,7 @@ const albums = [
 
 export const photos = albums.flatMap(({ title, prefix, suffix, quotes }) =>
   quotes.map((quote, index) => ({
-    image: `${prefix}${index + 1}${suffix}`,
+    image: `${basePath}${prefix}${index + 1}${suffix}`,
     quote,
     title,
   })),
