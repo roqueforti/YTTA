@@ -4,9 +4,9 @@ export const STORY_DURATION = 24;
 
 export function buildStoryLayout(count) {
   const photos = Array.from({ length: count }, (_, index) => {
-    const angle = index * .72 - .65;
-    return new THREE.Vector3(Math.sin(angle) * 3.2, Math.cos(angle * .8) * 1.25, -7 - index * 7.5);
+    const side = index % 2 ? 1 : -1;
+    return new THREE.Vector3(side * (1.05 + index % 3 * .18), Math.sin(index * 1.1) * .62, -10 - index * 13);
   });
-  const cameraPoints = [new THREE.Vector3(0, 0, 1.5), ...photos.map((position, index) => position.clone().add(new THREE.Vector3(index % 2 ? -.45 : .45, .08, 5.2)))];
-  return { photos, curve: new THREE.CatmullRomCurve3(cameraPoints, false, "catmullrom", .42) };
+  const views = photos.map((position, index) => position.clone().add(new THREE.Vector3(index % 2 ? -.18 : .18, .04, 9.2)));
+  return { photos, views };
 }

@@ -145,7 +145,7 @@ function GalaxyScene({ photos: displayPhotos, active, gyro, autoTour, visibleCou
 
   useFrame((_, delta) => {
     if (!active) return;
-    if (autoTour && !look.current.dragging) world.current.rotation.y += delta * (spotlight == null ? 0.013 : 0.007);
+    world.current.rotation.y += delta * 0.013;
     if (spotlight != null && meshRefs.current[spotlight]) {
       const direction = meshRefs.current[spotlight].getWorldPosition(cameraWork.position).normalize();
       cameraWork.matrix.lookAt(cameraWork.origin, direction, camera.up);
