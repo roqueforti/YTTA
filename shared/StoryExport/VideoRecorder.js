@@ -17,11 +17,35 @@ export function createStoryRecorder(source, { getOverlay, audioStream } = {}) {
   const draw = () => {
     context.drawImage(source, 0, 0, output.width, output.height);
     const gradient = context.createLinearGradient(0, 500, 0, 960); gradient.addColorStop(0, "transparent"); gradient.addColorStop(1, "rgba(1,2,8,.82)"); context.fillStyle = gradient; context.fillRect(0, 480, 540, 480);
-    context.strokeStyle = "rgba(255,255,255,.45)"; context.lineWidth = 1; context.beginPath(); context.moveTo(38, 135); context.lineTo(502, 135); context.stroke();
-    context.fillStyle = "#fff"; context.font = "600 9px sans-serif"; context.letterSpacing = "2px"; context.fillText("GALAKSI KENANGAN · YTTA", 38, 119);
+    
+    // Header text
+    context.shadowColor = "rgba(0,0,0,1)"; context.shadowBlur = 7; context.shadowOffsetY = 2;
+    context.fillStyle = "#fff"; context.font = "500 10px sans-serif"; context.letterSpacing = "3px"; context.fillText("GALAKSI KENANGAN · YTTA", 38, 115);
+    context.shadowColor = "transparent";
+    // Header line
+    context.strokeStyle = "rgba(255,255,255,.35)"; context.lineWidth = 1; context.beginPath(); context.moveTo(38, 126); context.lineTo(502, 126); context.stroke();
+    
     const overlay = getOverlay?.();
-    if (overlay?.quote) { context.textAlign = "center"; context.font = "italic 600 27px Georgia"; const lines = wrapText(context, `“${overlay.quote}”`, 450); lines.forEach((line, index) => context.fillText(line, 270, 695 + index * 36)); context.font = "600 8px sans-serif"; context.fillStyle = "#bdc8e2"; context.fillText(`${overlay.event} · ${overlay.dateLabel}`.toUpperCase(), 270, 710 + lines.length * 36); }
-    if (overlay?.watermark) { context.textAlign = "right"; context.fillStyle = "#fff"; context.font = "600 15px Georgia"; context.fillText("YTTA", 505, 895); context.font = "600 6px sans-serif"; context.fillText("MEMORY ARCHIVE", 505, 910); }
+    if (overlay?.quote) { 
+      context.textAlign = "center"; 
+      context.shadowColor = "rgba(0,0,0,1)"; context.shadowBlur = 18; context.shadowOffsetY = 3;
+      context.font = "italic 500 23px Georgia"; context.fillStyle = "#fff";
+      const lines = wrapText(context, `“${overlay.quote}”`, 450); 
+      // Bottom align the quote (bottom: 15% -> y ~ 816)
+      const startY = 780 - (lines.length * 32);
+      lines.forEach((line, index) => context.fillText(line, 270, startY + index * 32)); 
+      
+      context.font = "500 9px sans-serif"; context.fillStyle = "#b8c3df"; context.letterSpacing = "2px"; 
+      context.fillText(`${overlay.event} · ${overlay.dateLabel}`.toUpperCase(), 270, 780 + 18); 
+      context.shadowColor = "transparent";
+    }
+    if (overlay?.watermark) { 
+      context.textAlign = "right"; context.fillStyle = "#fff"; 
+      context.shadowColor = "rgba(0,0,0,1)"; context.shadowBlur = 8; context.shadowOffsetY = 2;
+      context.font = "500 14px Georgia"; context.fillText("YTTA", 505, 900); 
+      context.font = "500 7px sans-serif"; context.letterSpacing = "1px"; context.fillText("MEMORY ARCHIVE", 505, 912); 
+      context.shadowColor = "transparent"; 
+    }
     context.textAlign = "left"; frame = requestAnimationFrame(draw);
   };
   return { mimeType: mimeType || "video/webm", start() { draw(); recorder.start(500); }, stop() { return new Promise((resolve) => { recorder.onstop = () => { cancelAnimationFrame(frame); stream.getVideoTracks().forEach((track) => track.stop()); resolve(new Blob(chunks, { type: recorder.mimeType || mimeType || "video/webm" })); }; recorder.stop(); }); } };

@@ -83,10 +83,12 @@ export default function PlanetariumSphere({ active }) {
 
   return (
     <section className="galaxy-mode">
-      <Canvas camera={{ position: [0, 0, 0.01], fov: 62, near: 0.1, far: 160 }} dpr={[1, 1.6]}>
-        <color attach="background" args={["#02030a"]} />
-        <GalaxyScene photos={displayPhotos} active={active} gyro={gyro} autoTour={autoTour} visibleCount={visibleCount} spotlight={spotlight} setSpotlight={selectSpotlight} onInteraction={registerInteraction} onTexture={textureLoaded} />
-      </Canvas>
+      <div style={{ display: storyOpen ? 'none' : 'block', width: '100%', height: '100%' }}>
+        <Canvas camera={{ position: [0, 0, 0.01], fov: 62, near: 0.1, far: 160 }} dpr={[1, 1.6]}>
+          <color attach="background" args={["#02030a"]} />
+          <GalaxyScene photos={displayPhotos} active={active} gyro={gyro} autoTour={autoTour} visibleCount={visibleCount} spotlight={spotlight} setSpotlight={selectSpotlight} onInteraction={registerInteraction} onTexture={textureLoaded} />
+        </Canvas>
+      </div>
       {active && loaded < visibleCount && <div className="asset-progress"><span style={{ width: `${Math.round(loaded / visibleCount * 100)}%` }} /></div>}
       {spotlight != null && active && <aside className="galaxy-quote" key={spotlight}><small>{String(spotlight + 1).padStart(2, "0")} / {displayPhotos.length}</small><blockquote>{displayPhotos[spotlight].quote}</blockquote><p>{displayPhotos[spotlight].title}</p></aside>}
       {active && <button className={`gyro-toggle ${gyro ? "on" : ""}`} onClick={enableGyro}>{gyro ? "GYRO ON" : "GYRO"}</button>}
