@@ -86,5 +86,14 @@ function WallPreview() {
 }
 
 function CinematicPreview() {
-  return <div className="cinematic-preview"><div className="clapper"><i /><i /><i /></div><span>YTTA</span><small>A MEMORY FILM</small></div>;
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+  return <div className="cinematic-preview">
+    <div className="film-stills">
+      <img src={`${basePath}/textures/group/konserdewa192023/dewa (5).webp`} alt="" />
+      <img src={`${basePath}/textures/group/studio2025/studio1.webp`} alt="" />
+      <img src={`${basePath}/textures/group/bukber2025/bukber2025 (9).webp`} alt="" />
+    </div>
+    <div className="preview-film-title"><i>03</i><span>OUR STORY</span><small>YTTA · 2022—2026</small></div>
+    <b className="film-sprockets" />
+  </div>;
 }
