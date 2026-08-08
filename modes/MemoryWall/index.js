@@ -9,6 +9,7 @@ export default function MemoryWall({ active }) {
   const [visibleCount, setVisibleCount] = useState(20);
   const [spotlight, setSpotlight] = useState(null);
   const [loaded, setLoaded] = useState(0);
+  const [autoOpen, setAutoOpen] = useState(true);
 
   useEffect(() => {
     if (!active) return;
@@ -17,7 +18,7 @@ export default function MemoryWall({ active }) {
   }, [active]);
 
   useEffect(() => {
-    if (!active || !visibleCount) return;
+    if (!active || !visibleCount || !autoOpen) return;
     const cycle = setInterval(() => {
       setSpotlight((current) => {
         const next = current == null ? Math.floor(Math.random() * visibleCount) : (current + 1) % visibleCount;
@@ -26,7 +27,7 @@ export default function MemoryWall({ active }) {
       });
     }, 7800);
     return () => clearInterval(cycle);
-  }, [active, visibleCount]);
+  }, [active, visibleCount, autoOpen]);
 
   useEffect(() => {
     const rail = railRef.current;
@@ -64,6 +65,16 @@ export default function MemoryWall({ active }) {
         })}
       </div>
       {active && loaded < visibleCount && <div className="asset-progress warm"><span style={{ width: `${Math.round(loaded / visibleCount * 100)}%` }} /></div>}
+      {active && (
+        <button
+          className={`auto-spotlight-toggle ${autoOpen ? "on" : ""}`}
+          onClick={() => setAutoOpen((current) => !current)}
+          aria-pressed={autoOpen}
+          title={autoOpen ? "Spotlight terbuka otomatis" : "Klik polaroid untuk membuka spotlight"}
+        >
+          <i /> <span>{autoOpen ? "AUTO" : "MANUAL"}</span>
+        </button>
+      )}
       {selected && (
         <div className="polaroid-focus" onClick={closeSpotlight}>
           <article onClick={(event) => event.stopPropagation()} key={selected.image}>
