@@ -1,5 +1,27 @@
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
+const albumDates = {
+  "Kogu 2022": ["2022-10-01", "Oktober 2022"],
+  "Bukber 2023": ["2023-04-01", "April 2023"],
+  "Lawang 2023": ["2023-06-01", "Juni 2023"],
+  "Konser Dewa 19 2023": ["2023-07-01", "Juli 2023"],
+  "Robucca 2023": ["2023-09-01", "September 2023"],
+  "Life Update 2023": ["2023-12-01", "Desember 2023"],
+  "Bukber 2024": ["2024-03-01", "Maret 2024"],
+  "Jokopi 2024": ["2024-08-01", "Agustus 2024"],
+  "CW 2025": ["2025-01-01", "Januari 2025"],
+  "Bukber 2025": ["2025-03-01", "Maret 2025"],
+  "Studio 2025": ["2025-06-01", "Juni 2025"],
+  "Badminton 2025": ["2025-08-01", "Agustus 2025"],
+  "CW September 2025": ["2025-09-01", "September 2025"],
+  "Adristhi Semhas 2026": ["2026-01-01", "Januari 2026"],
+  "Salwa Semhas 2026": ["2026-02-01", "Februari 2026"],
+  "Kopjay 2026": ["2026-03-01", "Maret 2026"],
+  "Marsha Semhas 2026": ["2026-04-01", "April 2026"],
+  "Ulansa 2026": ["2026-05-01", "Mei 2026"],
+  "Wiesye Semhas 2026": ["2026-06-01", "Juni 2026"],
+};
+
 const albums = [
   {
     title: "Kogu 2022",
@@ -248,14 +270,19 @@ const albums = [
   },
 ];
 
-export const photos = albums.flatMap(({ title, prefix, suffix, files, quotes }) =>
+export const photos = albums.flatMap(({ title, prefix, suffix, files, quotes }, albumOrder) =>
   quotes.map((quote, index) => {
     const filename = files?.[index] ?? `${index + 1}${suffix}`;
+    const [date, dateLabel] = albumDates[title] ?? [`9999-${albumOrder}`, title];
     return {
       image: `${basePath}${prefix}${filename}`,
       thumbnail: `${basePath}${prefix.replace("/img/", "/textures/")}${filename}`,
       quote,
       title,
+      event: title,
+      date,
+      dateLabel,
+      order: albumOrder * 100 + index,
     };
   }),
 );

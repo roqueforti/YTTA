@@ -15,6 +15,13 @@ const modes = [
     subtitle: "Polaroid Memory Wall",
     description: "Menyusuri dinding hangat berisi foto, catatan, dan cerita yang pernah tinggal.",
   },
+  {
+    id: "cinematic",
+    number: "03",
+    title: "Cinematic Recap",
+    subtitle: "A Guided Memory Film",
+    description: "Menonton perjalanan kenangan secara kronologis, seperti sebuah film dokumenter pendek.",
+  },
 ];
 
 export default function ModeSelector({ onSelect }) {
@@ -24,7 +31,7 @@ export default function ModeSelector({ onSelect }) {
       <header className="selector-header"><span>YTTA</span><small>THE MEMORY ARCHIVE</small></header>
       <section className="selector-intro">
         <span className="eyebrow">CHOOSE YOUR JOURNEY</span>
-        <h1>Dua cara untuk<br /><em>mengingat kembali.</em></h1>
+        <h1>Tiga cara untuk<br /><em>mengingat kembali.</em></h1>
         <p>Pilih bagaimana kamu ingin menyusuri cerita kita.</p>
       </section>
       <section className="mode-grid">
@@ -32,7 +39,7 @@ export default function ModeSelector({ onSelect }) {
           <button key={mode.id} className={`mode-card ${mode.id}`} onClick={() => onSelect(mode.id)}>
             <span className="mode-number">{mode.number}</span>
             <div className="mode-preview" aria-hidden="true">
-              {mode.id === "galaxy" ? <GalaxyPreview /> : <WallPreview />}
+              {mode.id === "galaxy" ? <GalaxyPreview /> : mode.id === "wall" ? <WallPreview /> : <CinematicPreview />}
             </div>
             <div className="mode-copy"><small>{mode.subtitle}</small><h2>{mode.title}</h2><p>{mode.description}</p></div>
             <i className="mode-arrow">↗</i>
@@ -50,4 +57,8 @@ function GalaxyPreview() {
 
 function WallPreview() {
   return <div className="wall-preview"><span /><span /><span /><i /><b /></div>;
+}
+
+function CinematicPreview() {
+  return <div className="cinematic-preview"><div className="clapper"><i /><i /><i /></div><span>YTTA</span><small>A MEMORY FILM</small></div>;
 }

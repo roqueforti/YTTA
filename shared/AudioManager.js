@@ -37,7 +37,15 @@ export function AudioProvider({ children }) {
     });
   }, []);
 
-  return <AudioContext.Provider value={{ muted, playing, start, toggleMute }}>{children}</AudioContext.Provider>;
+  const fadeTo = useCallback((volume, duration = 700) => {
+    const sound = soundRef.current;
+    if (sound) sound.fade(sound.volume(), volume, duration);
+  }, []);
+  const pause = useCallback(() => { soundRef.current?.pause(); setPlaying(false); }, []);
+  const resume = useCallback(() => { soundRef.current?.play(); setPlaying(true); }, []);
+  const seekAudio = useCallback((seconds = 0) => soundRef.current?.seek(seconds), []);
+
+  return <AudioContext.Provider value={{ muted, playing, start, toggleMute, fadeTo, pause, resume, seekAudio }}>{children}</AudioContext.Provider>;
 }
 
 export const useAudio = () => useContext(AudioContext);
