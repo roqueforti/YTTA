@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { photos } from "@/data/photos";
+import StoryExport from "./StoryExport";
 
 export default function PlanetariumSphere({ active }) {
   const displayPhotos = useMemo(() => shufflePhotos(photos), []);
@@ -11,6 +12,9 @@ export default function PlanetariumSphere({ active }) {
   const [spotlight, setSpotlight] = useState(null);
   const [visibleCount, setVisibleCount] = useState(14);
   const [gyro, setGyro] = useState(false);
+  const [autoTour, setAutoTour] = useState(true);
+  const [storyOpen, setStoryOpen] = useState(false);
+  const idleTimer = useRef(null);
   const spotlightBag = useRef([]);
   const lastSpotlight = useRef(null);
   const firstSpotlightDone = useRef(false);
@@ -20,8 +24,18 @@ export default function PlanetariumSphere({ active }) {
     const Orientation = window.DeviceOrientationEvent;
     if (!Orientation) return;
     if (typeof Orientation.requestPermission === "function" && await Orientation.requestPermission() !== "granted") return;
-    setGyro(true);
+    clearTimeout(idleTimer.current);
+    setGyro(true); setAutoTour(false); setSpotlight(null);
   };
+
+  const registerInteraction = useCallback(() => {
+    setAutoTour(false);
+    setSpotlight(null);
+    clearTimeout(idleTimer.current);
+    if (!gyro) idleTimer.current = window.setTimeout(() => setAutoTour(true), 5000);
+  }, [gyro]);
+
+  useEffect(() => () => clearTimeout(idleTimer.current), []);
 
   useEffect(() => {
     if (!active) return;
@@ -36,7 +50,7 @@ export default function PlanetariumSphere({ active }) {
   }, [active, displayPhotos.length]);
 
   useEffect(() => {
-    if (!active || firstSpotlightDone.current) return;
+    if (!active || !autoTour || firstSpotlightDone.current) return;
     const first = window.setTimeout(() => {
       if (!spotlightBag.current.length) spotlightBag.current.push(...shufflePhotos(Array.from({ length: displayPhotos.length }, (_, index) => index)));
       const next = Math.floor(Math.random() * Math.min(14, displayPhotos.length));
@@ -46,40 +60,44 @@ export default function PlanetariumSphere({ active }) {
       setSpotlight(next);
     }, 1500);
     return () => clearTimeout(first);
-  }, [active, displayPhotos.length]);
+  }, [active, autoTour, displayPhotos.length]);
 
   useEffect(() => {
-    if (!active || visibleCount < displayPhotos.length) return;
+    if (!active || !autoTour || visibleCount < displayPhotos.length) return;
     const cycle = window.setInterval(() => {
       const next = takeFromShuffleBag(spotlightBag.current, displayPhotos.length, lastSpotlight.current);
       lastSpotlight.current = next;
       setSpotlight(next);
     }, 7600);
     return () => clearInterval(cycle);
-  }, [active, visibleCount, displayPhotos.length]);
+  }, [active, autoTour, visibleCount, displayPhotos.length]);
 
   const selectSpotlight = useCallback((index) => {
+    registerInteraction();
     if (!spotlightBag.current.length) spotlightBag.current.push(...shufflePhotos(Array.from({ length: displayPhotos.length }, (_, item) => item)));
     spotlightBag.current = spotlightBag.current.filter((item) => item !== index);
     lastSpotlight.current = index;
     setSpotlight(index);
-  }, [displayPhotos.length]);
+  }, [displayPhotos.length, registerInteraction]);
 
   return (
     <section className="galaxy-mode">
       <Canvas camera={{ position: [0, 0, 0.01], fov: 62, near: 0.1, far: 160 }} dpr={[1, 1.6]}>
         <color attach="background" args={["#02030a"]} />
-        <GalaxyScene photos={displayPhotos} active={active} gyro={gyro} visibleCount={visibleCount} spotlight={spotlight} setSpotlight={selectSpotlight} onTexture={textureLoaded} />
+        <GalaxyScene photos={displayPhotos} active={active} gyro={gyro} autoTour={autoTour} visibleCount={visibleCount} spotlight={spotlight} setSpotlight={selectSpotlight} onInteraction={registerInteraction} onTexture={textureLoaded} />
       </Canvas>
       {active && loaded < visibleCount && <div className="asset-progress"><span style={{ width: `${Math.round(loaded / visibleCount * 100)}%` }} /></div>}
       {spotlight != null && active && <aside className="galaxy-quote" key={spotlight}><small>{String(spotlight + 1).padStart(2, "0")} / {displayPhotos.length}</small><blockquote>{displayPhotos[spotlight].quote}</blockquote><p>{displayPhotos[spotlight].title}</p></aside>}
       {active && <button className={`gyro-toggle ${gyro ? "on" : ""}`} onClick={enableGyro}>{gyro ? "GYRO ON" : "GYRO"}</button>}
-      {active && <div className="mode-instruction">↔ &nbsp; DRAG UNTUK MELIHAT · KLIK FOTO</div>}
+      {active && <button className="story-export-toggle" onClick={() => setStoryOpen(true)}>▯ <span>BUAT VERSI STORY</span></button>}
+      {active && <div className={`tour-status ${autoTour ? "auto" : "manual"}`}><i />{gyro ? "GYRO · JELAJAH BEBAS" : autoTour ? "AUTO TOUR" : "JELAJAH BEBAS"}</div>}
+      {active && <div className="mode-instruction">{autoTour ? "GERAKKAN LAYAR UNTUK MENGAMBIL KONTROL" : "↔  DRAG UNTUK MELIHAT · KLIK FOTO · AUTO 5 DETIK"}</div>}
+      {storyOpen && <StoryExport photos={displayPhotos} onClose={() => setStoryOpen(false)} />}
     </section>
   );
 }
 
-function GalaxyScene({ photos: displayPhotos, active, gyro, visibleCount, spotlight, setSpotlight, onTexture }) {
+function GalaxyScene({ photos: displayPhotos, active, gyro, autoTour, visibleCount, spotlight, setSpotlight, onInteraction, onTexture }) {
   const world = useRef();
   const meshRefs = useRef([]);
   const { camera, gl } = useThree();
@@ -101,9 +119,10 @@ function GalaxyScene({ photos: displayPhotos, active, gyro, visibleCount, spotli
 
   useEffect(() => {
     const canvas = gl.domElement;
-    const down = (event) => { look.current.dragging = true; look.current.x = event.clientX; look.current.y = event.clientY; canvas.setPointerCapture(event.pointerId); };
+    const down = (event) => { onInteraction(); look.current.dragging = true; look.current.x = event.clientX; look.current.y = event.clientY; canvas.setPointerCapture(event.pointerId); };
     const move = (event) => {
       if (!look.current.dragging || spotlight != null) return;
+      onInteraction();
       look.current.yaw -= (event.clientX - look.current.x) * 0.0032;
       look.current.pitch = THREE.MathUtils.clamp(look.current.pitch - (event.clientY - look.current.y) * 0.0032, -1.35, 1.35);
       look.current.x = event.clientX; look.current.y = event.clientY;
@@ -111,7 +130,7 @@ function GalaxyScene({ photos: displayPhotos, active, gyro, visibleCount, spotli
     const up = () => { look.current.dragging = false; };
     canvas.addEventListener("pointerdown", down); canvas.addEventListener("pointermove", move); canvas.addEventListener("pointerup", up);
     return () => { canvas.removeEventListener("pointerdown", down); canvas.removeEventListener("pointermove", move); canvas.removeEventListener("pointerup", up); };
-  }, [gl, spotlight]);
+  }, [gl, spotlight, onInteraction]);
 
   useEffect(() => {
     if (!gyro) return;
@@ -126,7 +145,7 @@ function GalaxyScene({ photos: displayPhotos, active, gyro, visibleCount, spotli
 
   useFrame((_, delta) => {
     if (!active) return;
-    if (!look.current.dragging) world.current.rotation.y += delta * (spotlight == null ? 0.013 : 0.007);
+    if (autoTour && !look.current.dragging) world.current.rotation.y += delta * (spotlight == null ? 0.013 : 0.007);
     if (spotlight != null && meshRefs.current[spotlight]) {
       const direction = meshRefs.current[spotlight].getWorldPosition(cameraWork.position).normalize();
       cameraWork.matrix.lookAt(cameraWork.origin, direction, camera.up);

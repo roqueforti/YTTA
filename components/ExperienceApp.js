@@ -74,7 +74,7 @@ function ExperienceRouter() {
       <div className="audio-controls">
         <div className={`music-picker ${musicOpen ? "open" : ""}`}>
           <button className="music-current" onClick={() => setMusicOpen((open) => !open)} aria-expanded={musicOpen}>
-            <span><small>NOW PLAYING · {currentTrack + 1}/3</small><b>{track.title}</b><em>{track.artist}</em></span><i>⌄</i>
+            <span><small>NOW PLAYING · {currentTrack + 1}/{tracks.length}</small><b>{track.title}</b><em>{track.artist}</em></span><i>⌄</i>
           </button>
           {musicOpen && <div className="music-menu">
             {tracks.map((item, index) => <button key={item.file} className={index === currentTrack ? "active" : ""} onClick={() => { selectTrack(index); setMusicOpen(false); revealChrome(); }}><span>{String(index + 1).padStart(2, "0")}</span><b>{item.title}</b><small>{item.artist}</small></button>)}

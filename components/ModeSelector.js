@@ -9,15 +9,8 @@ const modes = [
     description: "Melayang di pusat semesta kecil yang dibangun dari potongan waktu kita.",
   },
   {
-    id: "wall",
-    number: "02",
-    title: "Lorong Kenangan",
-    subtitle: "Polaroid Memory Wall",
-    description: "Menyusuri dinding hangat berisi foto, catatan, dan cerita yang pernah tinggal.",
-  },
-  {
     id: "cinematic",
-    number: "03",
+    number: "02",
     title: "Cinematic Recap",
     subtitle: "A Guided Memory Film",
     description: "Menonton perjalanan kenangan secara kronologis, seperti sebuah film dokumenter pendek.",
@@ -45,7 +38,7 @@ export default function ModeSelector({ onSelect, preparation }) {
       </div>
       <section className="selector-intro">
         <span className="eyebrow">CHOOSE YOUR JOURNEY</span>
-        <h1>Tiga cara untuk<br /><em>mengingat kembali.</em></h1>
+        <h1>Dua cara untuk<br /><em>mengingat kembali.</em></h1>
         <p>Pilih bagaimana kamu ingin menyusuri cerita kita.</p>
         <p className="device-note">Untuk experience terbaik, gunakan iPad/tablet atau laptop/komputer.</p>
       </section>
@@ -93,7 +86,7 @@ function CinematicPreview() {
       <img src={`${basePath}/textures/group/studio2025/studio1.webp`} alt="" />
       <img src={`${basePath}/textures/group/bukber2025/bukber2025 (9).webp`} alt="" />
     </div>
-    <div className="preview-film-title"><i>03</i><span>OUR STORY</span><small>YTTA · 2022—2026</small></div>
+    <div className="preview-film-title"><i>02</i><span>OUR STORY</span><small>YTTA · 2022—2026</small></div>
     <b className="film-sprockets" />
   </div>;
 }
