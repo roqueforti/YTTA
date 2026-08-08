@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { photos } from "@/data/photos";
 
 export default function PlanetariumSphere({ active }) {
+  const displayPhotos = useMemo(() => shufflePhotos(photos), []);
   const [loaded, setLoaded] = useState(0);
   const [spotlight, setSpotlight] = useState(null);
   const [visibleCount, setVisibleCount] = useState(14);
@@ -22,14 +23,14 @@ export default function PlanetariumSphere({ active }) {
   useEffect(() => {
     if (!active) return;
     const reveal = window.setInterval(() => {
-      if (spotlight == null) setVisibleCount((count) => Math.min(photos.length, count + 6));
+      if (spotlight == null) setVisibleCount((count) => Math.min(displayPhotos.length, count + 6));
     }, 850);
     return () => clearInterval(reveal);
-  }, [active, spotlight]);
+  }, [active, spotlight, displayPhotos.length]);
 
   useEffect(() => {
     if (!active || !visibleCount) return;
-    const cycle = window.setInterval(() => setSpotlight((current) => current == null ? Math.floor(Math.random() * visibleCount) : (current + 1) % visibleCount), 7600);
+    const cycle = window.setInterval(() => setSpotlight((current) => pickRandomIndex(current, visibleCount)), 7600);
     return () => clearInterval(cycle);
   }, [active, visibleCount]);
 
@@ -37,17 +38,17 @@ export default function PlanetariumSphere({ active }) {
     <section className="galaxy-mode">
       <Canvas camera={{ position: [0, 0, 0.01], fov: 62, near: 0.1, far: 160 }} dpr={[1, 1.6]}>
         <color attach="background" args={["#02030a"]} />
-        <GalaxyScene active={active} gyro={gyro} visibleCount={visibleCount} spotlight={spotlight} setSpotlight={setSpotlight} onTexture={textureLoaded} />
+        <GalaxyScene photos={displayPhotos} active={active} gyro={gyro} visibleCount={visibleCount} spotlight={spotlight} setSpotlight={setSpotlight} onTexture={textureLoaded} />
       </Canvas>
       {active && loaded < visibleCount && <div className="asset-progress"><span style={{ width: `${Math.round(loaded / visibleCount * 100)}%` }} /></div>}
-      {spotlight != null && active && <aside className="galaxy-quote" key={spotlight}><small>{String(spotlight + 1).padStart(2, "0")} / {photos.length}</small><blockquote>{photos[spotlight].quote}</blockquote><p>{photos[spotlight].title}</p></aside>}
+      {spotlight != null && active && <aside className="galaxy-quote" key={spotlight}><small>{String(spotlight + 1).padStart(2, "0")} / {displayPhotos.length}</small><blockquote>{displayPhotos[spotlight].quote}</blockquote><p>{displayPhotos[spotlight].title}</p></aside>}
       {active && <button className={`gyro-toggle ${gyro ? "on" : ""}`} onClick={enableGyro}>{gyro ? "GYRO ON" : "GYRO"}</button>}
       {active && <div className="mode-instruction">↔ &nbsp; DRAG UNTUK MELIHAT · KLIK FOTO</div>}
     </section>
   );
 }
 
-function GalaxyScene({ active, gyro, visibleCount, spotlight, setSpotlight, onTexture }) {
+function GalaxyScene({ photos: displayPhotos, active, gyro, visibleCount, spotlight, setSpotlight, onTexture }) {
   const world = useRef();
   const meshRefs = useRef([]);
   const { camera, gl } = useThree();
@@ -110,7 +111,7 @@ function GalaxyScene({ active, gyro, visibleCount, spotlight, setSpotlight, onTe
       <mesh><sphereGeometry args={[72, 48, 32]} /><meshBasicMaterial color="#090d1d" side={THREE.BackSide} /></mesh>
       <points><bufferGeometry><bufferAttribute attach="attributes-position" args={[stars, 3]} /></bufferGeometry><pointsMaterial color="#bec9e7" size={0.09} transparent opacity={0.72} depthWrite={false} /></points>
       <group ref={world}>
-        {photos.slice(0, visibleCount).map((photo, index) => <SpherePhoto key={photo.image} photo={photo} index={index} total={photos.length} active={spotlight === index} dimmed={spotlight != null && spotlight !== index} onClick={() => setSpotlight(index)} onLoad={onTexture} meshRefs={meshRefs} />)}
+        {displayPhotos.slice(0, visibleCount).map((photo, index) => <SpherePhoto key={photo.image} photo={photo} index={index} total={displayPhotos.length} active={spotlight === index} dimmed={spotlight != null && spotlight !== index} onClick={() => setSpotlight(index)} onLoad={onTexture} meshRefs={meshRefs} />)}
       </group>
     </>
   );
@@ -120,11 +121,14 @@ function SpherePhoto({ photo, index, total, active, dimmed, onClick, onLoad, mes
   const mesh = useRef();
   const material = useRef();
   const [texture, setTexture] = useState(null);
+  const { size } = useThree();
   const positions = useMemo(() => {
     const y = 1 - index / (total - 1) * 2, radius = Math.sqrt(1 - y * y), theta = Math.PI * (3 - Math.sqrt(5)) * index;
     const home = new THREE.Vector3(Math.cos(theta) * radius, y, Math.sin(theta) * radius).multiplyScalar(30);
-    return { home, near: home.clone().normalize().multiplyScalar(7), normalScale: new THREE.Vector3(1, 1, 1), activeScale: new THREE.Vector3(1.65, 1.65, 1.65) };
-  }, [index, total]);
+    const compact = size.width < 700;
+    const activeSize = compact ? 0.86 : 1.65;
+    return { home, near: home.clone().normalize().multiplyScalar(compact ? 11 : 7), normalScale: new THREE.Vector3(1, 1, 1), activeScale: new THREE.Vector3(activeSize, activeSize, activeSize) };
+  }, [index, total, size.width]);
   const home = positions.home;
 
   useEffect(() => {
@@ -148,4 +152,20 @@ function SpherePhoto({ photo, index, total, active, dimmed, onClick, onLoad, mes
   if (!texture) return null;
   const ratio = texture.image.width / texture.image.height, width = ratio >= 1 ? 5.8 : 4.2;
   return <mesh ref={mesh} position={home} onClick={(event) => { event.stopPropagation(); onClick(); }}><planeGeometry args={[width, width / ratio]} /><meshBasicMaterial ref={material} map={texture} transparent opacity={0.9} side={THREE.DoubleSide} /></mesh>;
+}
+
+function shufflePhotos(items) {
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swap]] = [shuffled[swap], shuffled[index]];
+  }
+  return shuffled;
+}
+
+function pickRandomIndex(current, count) {
+  if (count <= 1) return 0;
+  let next = Math.floor(Math.random() * count);
+  while (next === current) next = Math.floor(Math.random() * count);
+  return next;
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { photos } from "@/data/photos";
 
 export default function MemoryWall({ active }) {
+  const displayPhotos = useMemo(() => shufflePhotos(photos), []);
   const railRef = useRef(null);
   const cardRefs = useRef([]);
   const [visibleCount, setVisibleCount] = useState(20);
@@ -13,15 +14,15 @@ export default function MemoryWall({ active }) {
 
   useEffect(() => {
     if (!active) return;
-    const reveal = setInterval(() => setVisibleCount((count) => Math.min(photos.length, count + 10)), 700);
+    const reveal = setInterval(() => setVisibleCount((count) => Math.min(displayPhotos.length, count + 10)), 700);
     return () => clearInterval(reveal);
-  }, [active]);
+  }, [active, displayPhotos.length]);
 
   useEffect(() => {
     if (!active || !visibleCount || !autoOpen) return;
     const cycle = setInterval(() => {
       setSpotlight((current) => {
-        const next = current == null ? Math.floor(Math.random() * visibleCount) : (current + 1) % visibleCount;
+        const next = pickRandomIndex(current, visibleCount);
         cardRefs.current[next]?.scrollIntoView({ behavior: "smooth", inline: "center", block: "center" });
         return next;
       });
@@ -42,14 +43,14 @@ export default function MemoryWall({ active }) {
   }, [active]);
 
   const closeSpotlight = () => setSpotlight(null);
-  const selected = spotlight == null ? null : photos[spotlight];
+  const selected = spotlight == null ? null : displayPhotos[spotlight];
 
   return (
     <section className={`wall-mode ${selected ? "has-spotlight" : ""}`}>
       <div className="warm-light" /><Dust />
       <div className="wall-rail" ref={railRef}>
         <div className="memory-thread" />
-        {photos.slice(0, visibleCount).map((photo, index) => {
+        {displayPhotos.slice(0, visibleCount).map((photo, index) => {
           const lane = index % 3, depth = index % 4, tilt = ((index * 17) % 11) - 5;
           return (
             <button
@@ -88,6 +89,22 @@ export default function MemoryWall({ active }) {
       {active && <div className="mode-instruction wall-hint">↔ &nbsp; SWIPE UNTUK MENYUSURI · KLIK POLAROID</div>}
     </section>
   );
+}
+
+function shufflePhotos(items) {
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swap]] = [shuffled[swap], shuffled[index]];
+  }
+  return shuffled;
+}
+
+function pickRandomIndex(current, count) {
+  if (count <= 1) return 0;
+  let next = Math.floor(Math.random() * count);
+  while (next === current) next = Math.floor(Math.random() * count);
+  return next;
 }
 
 function Dust() {
