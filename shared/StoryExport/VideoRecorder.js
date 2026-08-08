@@ -9,7 +9,7 @@ export function createStoryRecorder(source, { getOverlay, audioStream } = {}) {
   const output = document.createElement("canvas"); output.width = 540; output.height = 960;
   const context = output.getContext("2d"), stream = output.captureStream(30);
   audioStream?.getAudioTracks().forEach((track) => stream.addTrack(track));
-  const candidates = ["video/mp4;codecs=h264", "video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"];
+  const candidates = ["video/mp4;codecs=avc1.42E01E", "video/mp4", "video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"];
   const mimeType = candidates.find((type) => MediaRecorder.isTypeSupported(type)) ?? "", chunks = [];
   const recorder = new MediaRecorder(stream, mimeType ? { mimeType, videoBitsPerSecond: 7_000_000 } : undefined);
   recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
@@ -27,8 +27,15 @@ export function createStoryRecorder(source, { getOverlay, audioStream } = {}) {
   return { mimeType: mimeType || "video/webm", start() { draw(); recorder.start(500); }, stop() { return new Promise((resolve) => { recorder.onstop = () => { cancelAnimationFrame(frame); stream.getVideoTracks().forEach((track) => track.stop()); resolve(new Blob(chunks, { type: recorder.mimeType || mimeType || "video/webm" })); }; recorder.stop(); }); } };
 }
 
-export async function shareStoryVideo(blob) {
+export function storyVideoExtension(blob) { return blob.type.includes("mp4") ? "mp4" : "webm"; }
+
+export function downloadStoryVideo(blob) {
+  const extension = storyVideoExtension(blob), url = URL.createObjectURL(blob), anchor = document.createElement("a");
+  anchor.href = url; anchor.download = `ytta-galaksi-story.${extension}`; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); return extension;
+}
+
+export async function shareStoryVideo(blob, platform = "") {
   const extension = blob.type.includes("mp4") ? "mp4" : "webm", file = new File([blob], `ytta-galaksi-story.${extension}`, { type: blob.type });
-  if (navigator.share && navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: "Galaksi Kenangan · YTTA" }); return "shared"; }
-  const url = URL.createObjectURL(blob), anchor = document.createElement("a"); anchor.href = url; anchor.download = file.name; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); return "downloaded";
+  if (navigator.share && navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: "Galaksi Kenangan · YTTA", text: platform ? `Bagikan Story ini melalui ${platform}` : "Galaksi Kenangan · YTTA" }); return "shared"; }
+  downloadStoryVideo(blob); return "downloaded";
 }

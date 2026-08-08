@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Howl } from "howler";
 
 const AudioContext = createContext(null);
 const TRACKS = [
@@ -26,7 +27,6 @@ export function AudioProvider({ children }) {
 
   const start = useCallback(async () => {
     if (!soundsRef.current.length) {
-      const { Howl } = await import("howler");
       const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
       soundsRef.current = TRACKS.map((track, index) => new Howl({
         src: [`${basePath}/audio/${track.file}`],
