@@ -42,6 +42,7 @@ export default function ModeSelector({ onSelect }) {
         <span className="eyebrow">CHOOSE YOUR JOURNEY</span>
         <h1>Tiga cara untuk<br /><em>mengingat kembali.</em></h1>
         <p>Pilih bagaimana kamu ingin menyusuri cerita kita.</p>
+        <p className="device-note">Untuk experience terbaik, gunakan iPad/tablet atau laptop/komputer.</p>
       </section>
       <section className="archive-cast" aria-label="Orang-orang dalam arsip kenangan">
         <small>THE PEOPLE IN THESE MEMORIES</small>

@@ -16,10 +16,10 @@ export default function ExperienceApp() {
 function ExperienceRouter() {
   const [mode, setMode] = useState(null);
   const [started, setStarted] = useState(false);
-  const { muted, start, toggleMute } = useAudio();
-  const chooseMode = (nextMode) => { setMode(nextMode); setStarted(false); };
+  const { muted, currentTrack, tracks, start, stop, selectTrack, toggleMute } = useAudio();
+  const chooseMode = async (nextMode) => { setMode(nextMode); setStarted(false); await start(); };
   const enter = async () => { await start(); setStarted(true); };
-  const back = () => { setMode(null); setStarted(false); };
+  const back = () => { stop(); setMode(null); setStarted(false); };
   if (!mode) return <ModeSelector onSelect={chooseMode} />;
 
   const names = { galaxy: "GALAKSI KENANGAN", wall: "LORONG KENANGAN", cinematic: "CINEMATIC RECAP" };
@@ -36,10 +36,16 @@ function ExperienceRouter() {
     <header className="experience-nav">
       <button className="back-mode" onClick={back} aria-label="Kembali ke pilihan mode">← <span>PILIH MODE</span></button>
       <strong>{names[mode]}</strong>
-      <button className="sound-toggle" onClick={toggleMute} aria-label={muted ? "Nyalakan musik" : "Matikan musik"}>{muted ? "♪×" : "♪"}</button>
+      <div className="audio-controls">
+        <select className="track-select" value={currentTrack} onChange={(event) => selectTrack(Number(event.target.value))} aria-label="Pilih lagu">
+          {tracks.map((track, index) => <option key={track.file} value={index}>{index + 1}. {track.title} — {track.artist}</option>)}
+        </select>
+        <button className="sound-toggle" onClick={toggleMute} aria-label={muted ? "Nyalakan musik" : "Matikan musik"}>{muted ? "♪×" : "♪"}</button>
+      </div>
     </header>
     {!started && <section className="start-overlay">
       <span className="eyebrow">{eyebrow[mode]}</span><h1>{titles[mode]}</h1><p>{descriptions[mode]}</p>
+      <p className="device-note">Untuk experience terbaik, gunakan iPad/tablet atau laptop/komputer.</p>
       <button className="enter-btn" onClick={enter}><span>{mode === "cinematic" ? "Klik untuk memutar" : "Klik untuk mulai"}</span><i>↗</i></button>
     </section>}
   </main>;

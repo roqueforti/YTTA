@@ -3,7 +3,11 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 const AudioContext = createContext(null);
-const TRACKS = ["ambient.mp3", "ambient 2.mp3", "ambient 3.mp3"];
+const TRACKS = [
+  { file: "ambient.mp3", title: "Memori Baik", artist: "Sheila On 7" },
+  { file: "ambient 2.mp3", title: "Bergema Sampai Selamanya", artist: "Nadhif Basalamah" },
+  { file: "ambient 3.mp3", title: "Tujuh Belas", artist: "Tulus" },
+];
 
 export function AudioProvider({ children }) {
   const soundRef = useRef(null);
@@ -13,6 +17,7 @@ export function AudioProvider({ children }) {
   const targetVolumeRef = useRef(0.48);
   const [muted, setMuted] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [currentTrack, setCurrentTrack] = useState(0);
 
   useEffect(() => () => {
     soundsRef.current.forEach((sound) => sound.unload());
@@ -23,8 +28,8 @@ export function AudioProvider({ children }) {
     if (!soundsRef.current.length) {
       const { Howl } = await import("howler");
       const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-      soundsRef.current = TRACKS.map((filename, index) => new Howl({
-        src: [`${basePath}/audio/${filename}`],
+      soundsRef.current = TRACKS.map((track, index) => new Howl({
+        src: [`${basePath}/audio/${track.file}`],
         html5: true,
         loop: false,
         preload: true,
@@ -34,6 +39,7 @@ export function AudioProvider({ children }) {
           const nextSound = soundsRef.current[nextIndex];
           if (!nextSound) return;
           trackIndexRef.current = nextIndex;
+          setCurrentTrack(nextIndex);
           soundRef.current = nextSound;
           nextSound.stop();
           nextSound.mute(mutedRef.current);
@@ -71,7 +77,29 @@ export function AudioProvider({ children }) {
   const resume = useCallback(() => { soundRef.current?.play(); setPlaying(true); }, []);
   const seekAudio = useCallback((seconds = 0) => soundRef.current?.seek(seconds), []);
 
-  return <AudioContext.Provider value={{ muted, playing, start, toggleMute, fadeTo, pause, resume, seekAudio }}>{children}</AudioContext.Provider>;
+  const selectTrack = useCallback((index) => {
+    const nextSound = soundsRef.current[index];
+    if (!nextSound || index === trackIndexRef.current) return;
+    soundsRef.current.forEach((sound) => sound.stop());
+    trackIndexRef.current = index;
+    soundRef.current = nextSound;
+    nextSound.mute(mutedRef.current);
+    nextSound.volume(targetVolumeRef.current);
+    nextSound.play();
+    setCurrentTrack(index);
+    setPlaying(true);
+  }, []);
+
+  const stop = useCallback(() => {
+    soundsRef.current.forEach((sound) => sound.stop());
+    trackIndexRef.current = 0;
+    soundRef.current = soundsRef.current[0] ?? null;
+    targetVolumeRef.current = 0.48;
+    setCurrentTrack(0);
+    setPlaying(false);
+  }, []);
+
+  return <AudioContext.Provider value={{ muted, playing, currentTrack, tracks: TRACKS, start, stop, selectTrack, toggleMute, fadeTo, pause, resume, seekAudio }}>{children}</AudioContext.Provider>;
 }
 
 export const useAudio = () => useContext(AudioContext);
