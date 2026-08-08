@@ -121,7 +121,9 @@ function SpherePhoto({ photo, index, total, active, dimmed, onClick, onLoad, mes
   const mesh = useRef();
   const material = useRef();
   const [texture, setTexture] = useState(null);
-  const { size } = useThree();
+  const { size, camera } = useThree();
+  const homeQuaternion = useRef(new THREE.Quaternion());
+  const rotationWork = useMemo(() => ({ parent: new THREE.Quaternion(), target: new THREE.Quaternion() }), []);
   const positions = useMemo(() => {
     const y = 1 - index / (total - 1) * 2, radius = Math.sqrt(1 - y * y), theta = Math.PI * (3 - Math.sqrt(5)) * index;
     const home = new THREE.Vector3(Math.cos(theta) * radius, y, Math.sin(theta) * radius).multiplyScalar(30);
@@ -145,6 +147,7 @@ function SpherePhoto({ photo, index, total, active, dimmed, onClick, onLoad, mes
       // PlaneGeometry faces +Z and Object3D.lookAt points +Z at the target.
       // No extra 180° Y rotation: that exposes the back face and mirrors it.
       mesh.current.lookAt(0, 0, 0);
+      homeQuaternion.current.copy(mesh.current.quaternion);
       meshRefs.current[index] = mesh.current;
     }
   }, [index, meshRefs, texture]);
@@ -154,6 +157,13 @@ function SpherePhoto({ photo, index, total, active, dimmed, onClick, onLoad, mes
     const destination = active ? positions.near : home;
     mesh.current.position.lerp(destination, 1 - Math.exp(-delta * 2.3));
     mesh.current.scale.lerp(active ? positions.activeScale : positions.normalScale, 1 - Math.exp(-delta * 3));
+    if (active) {
+      mesh.current.parent.getWorldQuaternion(rotationWork.parent);
+      rotationWork.target.copy(rotationWork.parent).invert().multiply(camera.quaternion);
+      mesh.current.quaternion.slerp(rotationWork.target, 1 - Math.exp(-delta * 4));
+    } else {
+      mesh.current.quaternion.slerp(homeQuaternion.current, 1 - Math.exp(-delta * 3));
+    }
     material.current.opacity = THREE.MathUtils.damp(material.current.opacity, dimmed ? 0.2 : 0.9, 4, delta);
   });
   if (!texture) return null;
