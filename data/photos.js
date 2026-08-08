@@ -176,6 +176,7 @@ const albums = [
 export const photos = albums.flatMap(({ title, prefix, suffix, quotes }) =>
   quotes.map((quote, index) => ({
     image: `${basePath}${prefix}${index + 1}${suffix}`,
+    thumbnail: `${basePath}${prefix.replace("/img/", "/textures/")}${index + 1}${suffix}`,
     quote,
     title,
   })),

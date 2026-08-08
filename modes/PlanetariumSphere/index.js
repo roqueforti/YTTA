@@ -21,9 +21,11 @@ export default function PlanetariumSphere({ active }) {
 
   useEffect(() => {
     if (!active) return;
-    const reveal = window.setInterval(() => setVisibleCount((count) => Math.min(photos.length, count + 8)), 650);
+    const reveal = window.setInterval(() => {
+      if (spotlight == null) setVisibleCount((count) => Math.min(photos.length, count + 6));
+    }, 850);
     return () => clearInterval(reveal);
-  }, [active]);
+  }, [active, spotlight]);
 
   useEffect(() => {
     if (!active || !visibleCount) return;
@@ -58,6 +60,12 @@ function GalaxyScene({ active, gyro, visibleCount, spotlight, setSpotlight, onTe
     }
     return values;
   }, []);
+  const cameraWork = useMemo(() => ({
+    position: new THREE.Vector3(),
+    target: new THREE.Quaternion(),
+    matrix: new THREE.Matrix4(),
+    origin: new THREE.Vector3(),
+  }), []);
 
   useEffect(() => {
     const canvas = gl.domElement;
@@ -88,9 +96,10 @@ function GalaxyScene({ active, gyro, visibleCount, spotlight, setSpotlight, onTe
     if (!active) return;
     if (!look.current.dragging) world.current.rotation.y += delta * (spotlight == null ? 0.013 : 0.007);
     if (spotlight != null && meshRefs.current[spotlight]) {
-      const direction = meshRefs.current[spotlight].getWorldPosition(new THREE.Vector3()).normalize();
-      const target = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(new THREE.Vector3(), direction, camera.up));
-      camera.quaternion.slerp(target, 1 - Math.exp(-delta * 2.6));
+      const direction = meshRefs.current[spotlight].getWorldPosition(cameraWork.position).normalize();
+      cameraWork.matrix.lookAt(cameraWork.origin, direction, camera.up);
+      cameraWork.target.setFromRotationMatrix(cameraWork.matrix);
+      camera.quaternion.slerp(cameraWork.target, 1 - Math.exp(-delta * 2.6));
     } else {
       camera.rotation.order = "YXZ"; camera.rotation.y = look.current.yaw; camera.rotation.x = look.current.pitch;
     }
@@ -111,28 +120,29 @@ function SpherePhoto({ photo, index, total, active, dimmed, onClick, onLoad, mes
   const mesh = useRef();
   const material = useRef();
   const [texture, setTexture] = useState(null);
-  const home = useMemo(() => {
+  const positions = useMemo(() => {
     const y = 1 - index / (total - 1) * 2, radius = Math.sqrt(1 - y * y), theta = Math.PI * (3 - Math.sqrt(5)) * index;
-    return new THREE.Vector3(Math.cos(theta) * radius, y, Math.sin(theta) * radius).multiplyScalar(30);
+    const home = new THREE.Vector3(Math.cos(theta) * radius, y, Math.sin(theta) * radius).multiplyScalar(30);
+    return { home, near: home.clone().normalize().multiplyScalar(7), normalScale: new THREE.Vector3(1, 1, 1), activeScale: new THREE.Vector3(1.65, 1.65, 1.65) };
   }, [index, total]);
+  const home = positions.home;
 
   useEffect(() => {
     let alive = true;
-    new THREE.TextureLoader().load(photo.image, (loadedTexture) => {
+    new THREE.TextureLoader().load(photo.thumbnail, (loadedTexture) => {
       if (!alive) return loadedTexture.dispose();
       loadedTexture.colorSpace = THREE.SRGBColorSpace; setTexture(loadedTexture); onLoad();
     });
     return () => { alive = false; };
-  }, [photo.image, onLoad]);
+  }, [photo.thumbnail, onLoad]);
 
   useEffect(() => { if (mesh.current && texture) { mesh.current.lookAt(0, 0, 0); mesh.current.rotateY(Math.PI); meshRefs.current[index] = mesh.current; } }, [index, meshRefs, texture]);
   useEffect(() => () => texture?.dispose(), [texture]);
   useFrame((_, delta) => {
     if (!mesh.current || !material.current) return;
-    const destination = active ? home.clone().normalize().multiplyScalar(7) : home;
+    const destination = active ? positions.near : home;
     mesh.current.position.lerp(destination, 1 - Math.exp(-delta * 2.3));
-    const scale = active ? 1.65 : 1;
-    mesh.current.scale.lerp(new THREE.Vector3(scale, scale, scale), 1 - Math.exp(-delta * 3));
+    mesh.current.scale.lerp(active ? positions.activeScale : positions.normalScale, 1 - Math.exp(-delta * 3));
     material.current.opacity = THREE.MathUtils.damp(material.current.opacity, dimmed ? 0.2 : 0.9, 4, delta);
   });
   if (!texture) return null;

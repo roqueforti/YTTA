@@ -58,7 +58,7 @@ export default function MemoryWall({ active }) {
               style={{ "--lane": lane, "--depth": depth, "--tilt": `${tilt}deg`, "--delay": `${-(index % 13) * 0.37}s` }}
               onClick={() => setSpotlight(index)}
             >
-              <i className="pin" /><img src={photo.image} alt={photo.title} loading={index < 12 ? "eager" : "lazy"} onLoad={() => setLoaded((value) => value + 1)} /><span>{photo.title}</span>
+              <i className="pin" /><img src={photo.thumbnail} alt={photo.title} loading={index < 12 ? "eager" : "lazy"} onLoad={() => setLoaded((value) => value + 1)} /><span>{photo.title}</span>
             </button>
           );
         })}
@@ -67,7 +67,7 @@ export default function MemoryWall({ active }) {
       {selected && (
         <div className="polaroid-focus" onClick={closeSpotlight}>
           <article onClick={(event) => event.stopPropagation()} key={selected.image}>
-            <img src={selected.image} alt={selected.title} />
+            <img src={selected.thumbnail} alt={selected.title} />
             <blockquote>{selected.quote}</blockquote>
             <small>{selected.title} · {String(spotlight + 1).padStart(2, "0")}</small>
             <button onClick={closeSpotlight}>×</button>
