@@ -7,15 +7,26 @@ export default function Preloader({ onComplete }) {
   const [progress, setProgress] = useState(0);
   const [loadedCount, setLoadedCount] = useState(0);
   const [loadedPhotos, setLoadedPhotos] = useState([]);
+  const [loadingStatus, setLoadingStatus] = useState("Memuat musik...");
   const containerRef = useRef(null);
 
   const totalPhotos = photos.length;
-  const minLoadedPhotos = Math.ceil(totalPhotos * 0.75); // 75% minimal
+  const totalAssets = totalPhotos + 3; // foto + 3 audio files
+  const minLoadedAssets = Math.ceil(totalAssets * 0.75); // 75% minimal
 
   useEffect(() => {
     let mounted = true;
-    let loaded = 0;
-    const loadedImages = [];
+    let loadedAssetCount = 0;
+
+    const preloadAudio = (src) => {
+      return new Promise((resolve) => {
+        const audio = new Audio();
+        audio.addEventListener('canplaythrough', () => resolve(src), { once: true });
+        audio.addEventListener('error', () => resolve(src), { once: true });
+        audio.src = src;
+        audio.load();
+      });
+    };
 
     const preloadImage = (src) => {
       return new Promise((resolve) => {
@@ -26,38 +37,79 @@ export default function Preloader({ onComplete }) {
       });
     };
 
-    const loadPhotos = async () => {
-      // Load foto satu per satu untuk efek bertahap
-      for (const photo of photos) {
-        if (!mounted) break;
+    const updateProgress = () => {
+      const currentProgress = Math.floor((loadedAssetCount / totalAssets) * 100);
+      setProgress(currentProgress);
+      setLoadedCount(loadedAssetCount);
+      
+      // Otomatis masuk setelah 75%
+      if (loadedAssetCount >= minLoadedAssets && onComplete) {
+        setTimeout(() => {
+          if (mounted) onComplete();
+        }, 800);
+      }
+    };
+
+    const loadAssets = async () => {
+      const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+      
+      // 1. Load ambient.mp3 first
+      if (mounted) {
+        setLoadingStatus("Memuat musik pembuka...");
+        await preloadAudio(`${basePath}/audio/ambient.mp3`);
+        loadedAssetCount++;
+        updateProgress();
+      }
+
+      // 2. Load all photos
+      if (mounted) {
+        setLoadingStatus("Mengumpulkan foto-foto kenangan...");
+        const loadedImages = [];
         
-        const result = await preloadImage(photo.image);
-        
-        if (mounted) {
-          loaded++;
-          loadedImages.push({ ...photo, loaded: true });
-          setLoadedPhotos([...loadedImages]);
-          setLoadedCount(loaded);
-          const currentProgress = Math.floor((loaded / totalPhotos) * 100);
-          setProgress(currentProgress);
+        for (const photo of photos) {
+          if (!mounted) break;
           
-          // Otomatis masuk setelah 75%
-          if (loaded >= minLoadedPhotos && onComplete) {
-            setTimeout(() => {
-              if (mounted) onComplete();
-            }, 800);
-            break; // Stop loading setelah 75%
+          const result = await preloadImage(photo.image);
+          
+          if (mounted) {
+            loadedAssetCount++;
+            loadedImages.push({ ...photo, loaded: true });
+            setLoadedPhotos([...loadedImages]);
+            updateProgress();
+            
+            // Check jika sudah 75% saat loading foto
+            if (loadedAssetCount >= minLoadedAssets) {
+              setLoadingStatus("Masuk ke arsip kenangan...");
+              break;
+            }
           }
+        }
+      }
+
+      // 3. Load ambient 2 & 3 (jika belum 75%)
+      if (mounted && loadedAssetCount < minLoadedAssets) {
+        setLoadingStatus("Melengkapi koleksi musik...");
+        
+        await preloadAudio(`${basePath}/audio/ambient 2.mp3`);
+        if (mounted) {
+          loadedAssetCount++;
+          updateProgress();
+        }
+        
+        await preloadAudio(`${basePath}/audio/ambient 3.mp3`);
+        if (mounted) {
+          loadedAssetCount++;
+          updateProgress();
         }
       }
     };
 
-    loadPhotos();
+    loadAssets();
 
     return () => {
       mounted = false;
     };
-  }, [totalPhotos, minLoadedPhotos, onComplete]);
+  }, [totalPhotos, totalAssets, minLoadedAssets, onComplete]);
 
   // Parallax mouse effect - lebih smooth
   useEffect(() => {
@@ -132,9 +184,7 @@ export default function Preloader({ onComplete }) {
         </div>
         
         <p className="preloader-note">
-          {progress < 75 
-            ? "Mengumpulkan foto-foto kenangan..." 
-            : "Masuk ke arsip kenangan..."}
+          {loadingStatus}
         </p>
       </div>
 
