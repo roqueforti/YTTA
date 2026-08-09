@@ -6,8 +6,6 @@ import { photos } from "@/data/photos";
 export default function Preloader({ onComplete }) {
   const [progress, setProgress] = useState(0);
   const [loadedCount, setLoadedCount] = useState(0);
-  const [status, setStatus] = useState("Memulai...");
-  const [canEnter, setCanEnter] = useState(false);
 
   const totalPhotos = photos.length;
   const minLoadedPhotos = Math.ceil(totalPhotos * 0.75); // 75% minimal
@@ -17,7 +15,7 @@ export default function Preloader({ onComplete }) {
     let loaded = 0;
 
     const preloadImage = (src) => {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => resolve(src);
         img.onerror = () => resolve(src); // Tetap resolve meski gagal
@@ -26,10 +24,8 @@ export default function Preloader({ onComplete }) {
     };
 
     const loadPhotos = async () => {
-      setStatus("Mengunduh kenangan...");
-      
       // Buat promise untuk semua foto
-      const promises = photos.map((photo, index) => 
+      const promises = photos.map((photo) => 
         preloadImage(photo.image).then(() => {
           if (mounted) {
             loaded++;
@@ -37,9 +33,11 @@ export default function Preloader({ onComplete }) {
             const currentProgress = Math.floor((loaded / totalPhotos) * 100);
             setProgress(currentProgress);
             
-            if (loaded >= minLoadedPhotos && !canEnter) {
-              setStatus("Siap masuk!");
-              setCanEnter(true);
+            // Otomatis masuk setelah 75%
+            if (loaded >= minLoadedPhotos && onComplete) {
+              setTimeout(() => {
+                if (mounted) onComplete();
+              }, 300);
             }
           }
         })
@@ -50,8 +48,6 @@ export default function Preloader({ onComplete }) {
       
       if (mounted) {
         setProgress(100);
-        setStatus("Sempurna! Semua kenangan siap ditampilkan.");
-        setCanEnter(true);
       }
     };
 
@@ -60,251 +56,176 @@ export default function Preloader({ onComplete }) {
     return () => {
       mounted = false;
     };
-  }, [totalPhotos, minLoadedPhotos, canEnter]);
-
-  const handleEnter = () => {
-    if (canEnter && onComplete) {
-      onComplete();
-    }
-  };
+  }, [totalPhotos, minLoadedPhotos, onComplete]);
 
   return (
-    <div className="preloader-container">
+    <div className="preloader-shell">
+      <div className="selector-grain" />
+      <header className="preloader-header">
+        <span>YTTA</span>
+        <small>THE MEMORY ARCHIVE</small>
+      </header>
+      
       <div className="preloader-content">
-        <h1 className="preloader-title">Your Time Travel Archive</h1>
-        <p className="preloader-subtitle">Mengumpulkan kenangan bersama...</p>
+        <span className="eyebrow">LOADING MEMORIES</span>
+        <h1>Memuat kenangan<br /><em>bersama.</em></h1>
         
-        <div className="progress-section">
-          <div className="progress-bar">
-            <div 
-              className="progress-fill" 
-              style={{ width: `${progress}%` }}
-            />
+        <div className="preloader-progress">
+          <div className="progress-track">
+            <div className="progress-fill" style={{ width: `${progress}%` }} />
           </div>
-          
-          <div className="progress-info">
+          <div className="progress-meta">
             <span className="progress-percentage">{progress}%</span>
-            <span className="progress-count">
-              {loadedCount} / {totalPhotos} foto
-            </span>
+            <span className="progress-count">{loadedCount} / {totalPhotos}</span>
           </div>
         </div>
-
-        <p className="status-text">{status}</p>
-
-        {canEnter && (
-          <button 
-            className="enter-button"
-            onClick={handleEnter}
-          >
-            Masuk ke Arsip Kenangan
-          </button>
-        )}
-
-        {!canEnter && progress > 0 && (
-          <p className="waiting-text">
-            Minimal {minLoadedPhotos} foto ({Math.floor((minLoadedPhotos / totalPhotos) * 100)}%) harus dimuat sebelum masuk...
-          </p>
-        )}
+        
+        <p className="preloader-note">
+          {progress < 75 
+            ? "Mengumpulkan foto-foto kenangan..." 
+            : progress < 100 
+            ? "Hampir selesai, tetap menunggu..." 
+            : "Semua kenangan siap!"}
+        </p>
       </div>
 
+      <footer className="preloader-footer">PREPARING YOUR JOURNEY · 2022—2026</footer>
+
       <style jsx>{`
-        .preloader-container {
+        .preloader-shell {
           position: fixed;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+          inset: 0;
+          overflow: auto;
+          padding: 28px clamp(22px, 5vw, 74px) 24px;
+          background: radial-gradient(circle at 50% 0, #1b1b25, #090a10 50%, #030408);
+          isolation: isolate;
+          z-index: 10000;
+        }
+
+        .selector-grain {
+          position: fixed;
+          inset: 0;
+          z-index: -1;
+          opacity: 0.12;
+          pointer-events: none;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
+        }
+
+        .preloader-header {
           display: flex;
           align-items: center;
-          justify-content: center;
-          z-index: 10000;
-          color: white;
+          gap: 14px;
+        }
+
+        .preloader-header span {
+          font: 500 19px var(--font-serif);
+          letter-spacing: 0.18em;
+          color: #f3efe7;
+        }
+
+        .preloader-header small {
+          padding-left: 14px;
+          border-left: 1px solid rgba(255, 255, 255, 0.16);
+          color: #777;
+          font-size: 8px;
+          letter-spacing: 0.26em;
         }
 
         .preloader-content {
-          max-width: 600px;
-          width: 90%;
+          margin: clamp(60px, 12vh, 120px) auto;
+          max-width: 640px;
           text-align: center;
-          padding: 2rem;
         }
 
-        .preloader-title {
-          font-size: clamp(2rem, 5vw, 3.5rem);
-          font-weight: 700;
-          margin-bottom: 0.5rem;
-          background: linear-gradient(90deg, #ffffff, #e0e0e0, #ffffff);
-          background-size: 200% 100%;
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-          animation: shimmer 3s ease-in-out infinite;
+        .eyebrow {
+          display: block;
+          color: #aaa6a0;
+          font-size: 9px;
+          letter-spacing: 0.42em;
         }
 
-        @keyframes shimmer {
-          0%, 100% {
-            background-position: 0% 0%;
-          }
-          50% {
-            background-position: 100% 0%;
-          }
+        .preloader-content h1 {
+          margin: 16px 0 clamp(40px, 6vh, 60px);
+          font: 500 clamp(42px, 6vw, 76px) / 0.97 var(--font-serif);
+          letter-spacing: -0.04em;
+          color: #f3efe7;
         }
 
-        .preloader-subtitle {
-          font-size: 1.1rem;
-          color: #a8b2d1;
-          margin-bottom: 3rem;
-          font-weight: 300;
+        .preloader-content h1 em {
+          color: #aaa4ae;
+          font-weight: 500;
         }
 
-        .progress-section {
-          margin-bottom: 2rem;
+        .preloader-progress {
+          margin: 0 auto;
+          max-width: 480px;
         }
 
-        .progress-bar {
+        .progress-track {
           width: 100%;
-          height: 8px;
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 10px;
-          overflow: hidden;
-          margin-bottom: 1rem;
-          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+          height: 2px;
+          background: rgba(255, 255, 255, 0.12);
+          margin-bottom: 12px;
         }
 
         .progress-fill {
           height: 100%;
-          background: linear-gradient(90deg, #4a90e2, #64b5f6, #4fc3f7);
-          border-radius: 10px;
+          background: #eae5dc;
           transition: width 0.3s ease;
-          box-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
-          position: relative;
-          overflow: hidden;
         }
 
-        .progress-fill::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.3),
-            transparent
-          );
-          animation: slide 2s ease-in-out infinite;
-        }
-
-        @keyframes slide {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(100%);
-          }
-        }
-
-        .progress-info {
+        .progress-meta {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          font-size: 0.95rem;
           color: #cbd5e1;
+          font-size: 8px;
+          letter-spacing: 0.08em;
         }
 
         .progress-percentage {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #4fc3f7;
+          font-size: 12px;
+          color: #eae5dc;
         }
 
         .progress-count {
-          font-size: 0.9rem;
-          color: #94a3b8;
+          color: #777;
         }
 
-        .status-text {
-          font-size: 1rem;
-          color: #e2e8f0;
-          margin-bottom: 1.5rem;
+        .preloader-note {
+          margin-top: clamp(24px, 4vh, 36px);
+          color: #888;
+          font-size: 10px;
+          letter-spacing: 0.12em;
           min-height: 1.5rem;
-          font-style: italic;
         }
 
-        .enter-button {
-          background: linear-gradient(135deg, #4a90e2, #357abd);
-          color: white;
-          border: none;
-          padding: 1rem 2.5rem;
-          font-size: 1.1rem;
-          font-weight: 600;
-          border-radius: 50px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          animation: fadeIn 0.5s ease, pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes pulse {
-          0%, 100% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.05);
-          }
-        }
-
-        .enter-button:hover {
-          background: linear-gradient(135deg, #357abd, #2868a8);
-          box-shadow: 0 6px 20px rgba(74, 144, 226, 0.6);
-          transform: translateY(-2px);
-        }
-
-        .enter-button:active {
-          transform: translateY(0);
-          box-shadow: 0 2px 10px rgba(74, 144, 226, 0.4);
-        }
-
-        .waiting-text {
-          font-size: 0.85rem;
-          color: #94a3b8;
-          margin-top: 1rem;
-          font-style: italic;
+        .preloader-footer {
+          position: absolute;
+          bottom: 24px;
+          left: 0;
+          right: 0;
+          color: #575960;
+          text-align: center;
+          font-size: 8px;
+          letter-spacing: 0.25em;
         }
 
         @media (max-width: 640px) {
+          .preloader-shell {
+            padding: 20px 18px 30px;
+          }
+
           .preloader-content {
-            padding: 1rem;
+            margin: 48px auto;
           }
 
-          .preloader-title {
-            font-size: 2rem;
+          .preloader-content h1 {
+            font-size: 42px;
           }
 
-          .preloader-subtitle {
-            font-size: 0.95rem;
-            margin-bottom: 2rem;
-          }
-
-          .enter-button {
-            padding: 0.875rem 2rem;
-            font-size: 0.95rem;
+          .preloader-footer {
+            display: none;
           }
         }
       `}</style>
