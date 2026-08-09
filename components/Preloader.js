@@ -59,19 +59,20 @@ export default function Preloader({ onComplete }) {
     };
   }, [totalPhotos, minLoadedPhotos, onComplete]);
 
-  // Parallax mouse effect
+  // Parallax mouse effect - lebih smooth
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!containerRef.current) return;
       const { clientX, clientY } = e;
       const { innerWidth, innerHeight } = window;
-      const x = (clientX / innerWidth - 0.5) * 20;
-      const y = (clientY / innerHeight - 0.5) * 20;
+      const x = (clientX / innerWidth - 0.5) * 30;
+      const y = (clientY / innerHeight - 0.5) * 30;
       
       const photos = containerRef.current.querySelectorAll('.floating-photo');
       photos.forEach((photo, index) => {
-        const depth = (index % 3) + 1;
-        photo.style.transform = `translate(${x * depth}px, ${y * depth}px) rotate(${photo.dataset.rotation}deg)`;
+        const depth = ((index % 4) + 1) * 0.5;
+        const baseRotation = parseFloat(photo.dataset.rotation) || 0;
+        photo.style.transform = `translate3d(${x * depth}px, ${y * depth}px, 0) rotate(${baseRotation + (x * 0.05)}deg)`;
       });
     };
 
@@ -85,13 +86,13 @@ export default function Preloader({ onComplete }) {
       
       {/* Floating photos background */}
       <div className="photo-galaxy">
-        {loadedPhotos.slice(-15).map((photo, index) => {
-          const angle = (index / 15) * 360;
-          const radius = 35 + (index % 3) * 8;
+        {loadedPhotos.slice(-18).map((photo, index) => {
+          const angle = (index / 18) * 360 + (index * 7);
+          const radius = 32 + (index % 4) * 10;
           const x = Math.cos((angle * Math.PI) / 180) * radius;
           const y = Math.sin((angle * Math.PI) / 180) * radius;
-          const rotation = (index * 23) % 60 - 30;
-          const delay = index * 0.05;
+          const rotation = (index * 19) % 50 - 25;
+          const delay = index * 0.08;
           
           return (
             <div
@@ -102,9 +103,10 @@ export default function Preloader({ onComplete }) {
                 left: `calc(50% + ${x}vw)`,
                 top: `calc(50% + ${y}vh)`,
                 animationDelay: `${delay}s`,
+                '--rotation': `${rotation}deg`,
               }}
             >
-              <img src={photo.image} alt="" />
+              <img src={photo.image} alt="" loading="eager" />
             </div>
           );
         })}
@@ -174,18 +176,22 @@ export default function Preloader({ onComplete }) {
           width: clamp(80px, 8vw, 140px);
           aspect-ratio: 4/3;
           opacity: 0;
-          transition: transform 0.3s ease-out;
-          animation: photoFadeIn 0.6s ease-out forwards;
+          transition: transform 0.6s cubic-bezier(0.16, 0.8, 0.3, 1);
+          animation: photoFloatIn 2s cubic-bezier(0.16, 0.8, 0.3, 1) forwards;
+          will-change: transform, opacity;
         }
 
-        @keyframes photoFadeIn {
-          from {
+        @keyframes photoFloatIn {
+          0% {
             opacity: 0;
-            transform: scale(0.3) rotate(0deg);
+            transform: translate3d(0, 30vh, -200px) scale(0.4) rotate(0deg);
           }
-          to {
-            opacity: 0.15;
-            transform: scale(1) rotate(var(--rotation, 0deg));
+          60% {
+            opacity: 0.08;
+          }
+          100% {
+            opacity: 0.12;
+            transform: translate3d(0, 0, 0) scale(1) rotate(var(--rotation, 0deg));
           }
         }
 
@@ -193,9 +199,20 @@ export default function Preloader({ onComplete }) {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          border: 3px solid rgba(255, 255, 255, 0.3);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-          filter: saturate(0.7) brightness(0.9);
+          border: 2px solid rgba(255, 255, 255, 0.25);
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+          filter: saturate(0.65) brightness(0.85) blur(0.3px);
+          animation: photoFloat 8s ease-in-out infinite;
+          animation-delay: inherit;
+        }
+
+        @keyframes photoFloat {
+          0%, 100% {
+            transform: translateY(0) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-15px) rotate(2deg);
+          }
         }
 
         .preloader-header {
@@ -333,9 +350,13 @@ export default function Preloader({ onComplete }) {
         }
 
         @media (prefers-reduced-motion: reduce) {
+          .floating-photo,
+          .floating-photo img {
+            animation: none !important;
+          }
+          
           .floating-photo {
-            animation: none;
-            opacity: 0.15;
+            opacity: 0.12 !important;
           }
         }
       `}</style>
