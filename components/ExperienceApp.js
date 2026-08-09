@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import ModeSelector from "./ModeSelector";
+import Preloader from "./Preloader";
 import { AudioProvider, useAudio } from "@/shared/AudioManager";
 import { prepareExperienceAssets, unsubscribeAssetProgress } from "@/shared/AssetPreloader";
 
@@ -11,6 +12,12 @@ const MemoryWall = dynamic(() => import("@/modes/MemoryWall"), { ssr: false });
 const CinematicRecap = dynamic(() => import("@/modes/CinematicRecap"), { ssr: false });
 
 export default function ExperienceApp() {
+  const [preloadComplete, setPreloadComplete] = useState(false);
+
+  if (!preloadComplete) {
+    return <Preloader onComplete={() => setPreloadComplete(true)} />;
+  }
+
   return <AudioProvider><ExperienceRouter /></AudioProvider>;
 }
 
