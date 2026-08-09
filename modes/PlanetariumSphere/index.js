@@ -31,7 +31,7 @@ export default function PlanetariumSphere({ active }) {
     setAutoTour(false);
     setSpotlight(null);
     clearTimeout(idleTimer.current);
-    if (!gyro) idleTimer.current = window.setTimeout(() => setAutoTour(true), 5000);
+    if (!gyro) idleTimer.current = window.setTimeout(() => setAutoTour(true), 2000);
   }, [gyro]);
 
   useEffect(() => () => clearTimeout(idleTimer.current), []);
@@ -91,7 +91,7 @@ export default function PlanetariumSphere({ active }) {
       {spotlight != null && active && <aside className="galaxy-quote" key={spotlight}><small>{String(spotlight + 1).padStart(2, "0")} / {displayPhotos.length}</small><blockquote>{displayPhotos[spotlight].quote}</blockquote><p>{displayPhotos[spotlight].title}</p></aside>}
       {active && <button className={`gyro-toggle ${gyro ? "on" : ""}`} onClick={enableGyro}>{gyro ? "GYRO ON" : "GYRO"}</button>}
       {active && <div className={`tour-status ${autoTour ? "auto" : "manual"}`}><i />{gyro ? "GYRO · JELAJAH BEBAS" : autoTour ? "AUTO TOUR" : "JELAJAH BEBAS"}</div>}
-      {active && <div className="mode-instruction">{autoTour ? "GERAKKAN LAYAR UNTUK MENGAMBIL KONTROL" : "↔  DRAG UNTUK MELIHAT · KLIK FOTO · AUTO 5 DETIK"}</div>}
+      {active && <div className="mode-instruction">{autoTour ? "GERAKKAN LAYAR UNTUK MENGAMBIL KONTROL" : "↔  DRAG UNTUK MELIHAT · KLIK FOTO · AUTO 2 DETIK"}</div>}
     </section>
   );
 }
