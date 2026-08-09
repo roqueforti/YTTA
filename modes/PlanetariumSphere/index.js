@@ -4,7 +4,6 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { photos } from "@/data/photos";
-import StoryExport from "./StoryExport";
 
 export default function PlanetariumSphere({ active }) {
   const displayPhotos = useMemo(() => shufflePhotos(photos), []);
@@ -13,7 +12,6 @@ export default function PlanetariumSphere({ active }) {
   const [visibleCount, setVisibleCount] = useState(14);
   const [gyro, setGyro] = useState(false);
   const [autoTour, setAutoTour] = useState(true);
-  const [storyOpen, setStoryOpen] = useState(false);
   const idleTimer = useRef(null);
   const spotlightBag = useRef([]);
   const lastSpotlight = useRef(null);
@@ -83,7 +81,7 @@ export default function PlanetariumSphere({ active }) {
 
   return (
     <section className="galaxy-mode">
-      <div style={{ display: storyOpen ? 'none' : 'block', width: '100%', height: '100%' }}>
+      <div style={{ width: '100%', height: '100%' }}>
         <Canvas camera={{ position: [0, 0, 0.01], fov: 62, near: 0.1, far: 160 }} dpr={[1, 1.6]}>
           <color attach="background" args={["#02030a"]} />
           <GalaxyScene photos={displayPhotos} active={active} gyro={gyro} autoTour={autoTour} visibleCount={visibleCount} spotlight={spotlight} setSpotlight={selectSpotlight} onInteraction={registerInteraction} onTexture={textureLoaded} />
@@ -92,10 +90,8 @@ export default function PlanetariumSphere({ active }) {
       {active && loaded < visibleCount && <div className="asset-progress"><span style={{ width: `${Math.round(loaded / visibleCount * 100)}%` }} /></div>}
       {spotlight != null && active && <aside className="galaxy-quote" key={spotlight}><small>{String(spotlight + 1).padStart(2, "0")} / {displayPhotos.length}</small><blockquote>{displayPhotos[spotlight].quote}</blockquote><p>{displayPhotos[spotlight].title}</p></aside>}
       {active && <button className={`gyro-toggle ${gyro ? "on" : ""}`} onClick={enableGyro}>{gyro ? "GYRO ON" : "GYRO"}</button>}
-      {active && <button className="story-export-toggle" onClick={() => setStoryOpen(true)}>▯ <span>BUAT VERSI STORY</span></button>}
       {active && <div className={`tour-status ${autoTour ? "auto" : "manual"}`}><i />{gyro ? "GYRO · JELAJAH BEBAS" : autoTour ? "AUTO TOUR" : "JELAJAH BEBAS"}</div>}
       {active && <div className="mode-instruction">{autoTour ? "GERAKKAN LAYAR UNTUK MENGAMBIL KONTROL" : "↔  DRAG UNTUK MELIHAT · KLIK FOTO · AUTO 5 DETIK"}</div>}
-      {storyOpen && <StoryExport photos={displayPhotos} onClose={() => setStoryOpen(false)} />}
     </section>
   );
 }
